@@ -1,7 +1,11 @@
+"use client";
+
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ArrowUpDown } from "lucide-react";
 import { differenceInDays, formatDistanceToNowStrict } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { EtsyListing, Filters } from "@/lib/types";
@@ -11,8 +15,42 @@ interface ListingsTableProps {
   filters: Filters;
 }
 
+type SortKey = "num_favorers" | "views" | "original_creation_timestamp" | "last_modified_timestamp" | "quantity";
+type SortDirection = "asc" | "desc";
+
 export function ListingsTable({ listings, filters }: ListingsTableProps) {
+  const [sortKey, setSortKey] = useState<SortKey>("num_favorers");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const now = new Date();
+
+  const sortedListings = useMemo(() => {
+    const sorted = [...listings].sort((a, b) => {
+      if (sortDirection === 'asc') {
+        return a[sortKey] > b[sortKey] ? 1 : -1;
+      } else {
+        return a[sortKey] < b[sortKey] ? 1 : -1;
+      }
+    });
+    return sorted;
+  }, [listings, sortKey, sortDirection]);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDirection('desc');
+    }
+  };
+  
+  const SortableHeader = ({ sortKey: key, children }: { sortKey: SortKey; children: React.ReactNode }) => (
+    <TableHead>
+      <Button variant="ghost" onClick={() => handleSort(key)} className="px-2 py-1 h-auto -ml-2">
+        {children}
+        <ArrowUpDown className={cn("ml-2 h-3 w-3", sortKey === key ? "text-foreground" : "text-muted-foreground/50")} />
+      </Button>
+    </TableHead>
+  );
 
   const getCellClass = (isMatch: boolean) => cn(isMatch && "bg-accent/20 font-bold");
 
@@ -21,7 +59,7 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
       <CardHeader>
         <CardTitle>Active Listings</CardTitle>
         <CardDescription>
-          Showing all {listings.length} active listings. Cells highlighted in plum meet your filter criteria.
+          Showing all {listings.length} active listings. Cells highlighted in plum meet your filter criteria. Click headers to sort.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -30,17 +68,17 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Listing ID</TableHead>
-                <TableHead>Favorites</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead>Age</TableHead>
-                <TableHead>Last Modified</TableHead>
-                <TableHead>Qty</TableHead>
+                <SortableHeader sortKey="num_favorers">Favorites</SortableHeader>
+                <SortableHeader sortKey="views">Views</SortableHeader>
+                <SortableHeader sortKey="original_creation_timestamp">Age</SortableHeader>
+                <SortableHeader sortKey="last_modified_timestamp">Last Modified</SortableHeader>
+                <SortableHeader sortKey="quantity">Qty</SortableHeader>
                 <TableHead>Tags</TableHead>
                 <TableHead>Link</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {listings.map((listing) => {
+              {sortedListings.map((listing) => {
                 const ageInDays = differenceInDays(now, new Date(listing.original_creation_timestamp * 1000));
                 
                 const meetsFavs = listing.num_favorers >= filters.favorites;
