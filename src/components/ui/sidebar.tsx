@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ScrollArea } from "./scroll-area"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -319,17 +320,21 @@ SidebarRail.displayName = "SidebarRail"
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-transparent",
+        "relative flex flex-1 flex-col bg-transparent",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width-icon)_+_1rem)] md:peer-data-[variant=inset]:ml-[calc(var(--sidebar-width)_-_2rem)] md:peer-data-[variant=inset]:rounded-xl",
         className
       )}
       {...props}
-    />
+    >
+      <ScrollArea className="h-svh">
+        {children}
+      </ScrollArea>
+    </main>
   )
 })
 SidebarInset.displayName = "SidebarInset"
@@ -763,5 +768,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
