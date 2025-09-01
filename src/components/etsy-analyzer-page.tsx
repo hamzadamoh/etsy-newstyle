@@ -13,6 +13,7 @@ import { ShopInfo } from "@/components/shop-info";
 import { ListingsTable } from "@/components/listings-table";
 import { ProductTimelineChart } from "@/components/product-timeline-chart";
 import type { Filters, EtsyListing } from "@/lib/types";
+import { FinancialInsights } from "./financial-insights";
 
 const initialState: SingleShopActionState = {
   shop: null,
@@ -103,7 +104,7 @@ export function EtsyAnalyzerPage() {
   return (
     <div className="max-w-7xl mx-auto">
       <Card className="no-print">
-        <form ref={formRef} action={handleFormSubmit}>
+        <form ref={formRef} action={formAction}>
           <CardHeader>
             <CardTitle>Store Analyzer</CardTitle>
             <CardDescription>
@@ -140,6 +141,7 @@ export function EtsyAnalyzerPage() {
            <ShopInfo shop={state.shop} />
            {state.listings.length > 0 ? (
             <>
+              <FinancialInsights shop={state.shop} listings={state.listings} />
               <ProductTimelineChart listings={state.listings} />
               <ListingsTable listings={state.listings} filters={filters} />
             </>
