@@ -26,8 +26,8 @@ export default function LandingPage() {
           <h1 className="text-2xl font-bold">Etsy Analyzer</h1>
         </div>
         <nav>
-          <Button asChild variant="ghost">
-            <Link href="/dashboard">Enter Portal</Link>
+          <Button variant="ghost" onClick={() => setIsAuthModalOpen(true)}>
+            Enter Portal
           </Button>
         </nav>
       </header>
