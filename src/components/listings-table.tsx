@@ -5,9 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, ArrowUpDown } from "lucide-react";
+import { ExternalLink, ArrowUpDown, Copy, Download } from "lucide-react";
 import { differenceInDays, formatDistanceToNowStrict } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import type { EtsyListing, Filters } from "@/lib/types";
 
 interface ListingsTableProps {
@@ -22,6 +23,7 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("num_favorers");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const now = new Date();
+  const { toast } = useToast();
 
   const sortedListings = useMemo(() => {
     const sorted = [...listings].sort((a, b) => {
@@ -54,20 +56,90 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
 
   const getCellClass = (isMatch: boolean) => cn(isMatch && "bg-accent/20 font-bold");
 
+  const headers = ["Listing ID", "Title", "Favorites", "Views", "Age (Days)", "Last Modified", "Quantity", "Tags", "URL"];
+
+  const handleCopyToSheets = () => {
+    const data = sortedListings.map(l => [
+      l.listing_id,
+      `"${l.title.replace(/"/g, '""')}"`,
+      l.num_favorers,
+      l.views,
+      differenceInDays(now, new Date(l.original_creation_timestamp * 1000)),
+      new Date(l.last_modified_timestamp * 1000).toISOString(),
+      l.quantity,
+      `"${l.tags.join(', ')}"`,
+      l.url
+    ].join('\t')).join('\n');
+    const tsv = `${headers.join('\t')}\n${data}`;
+    navigator.clipboard.writeText(tsv).then(() => {
+      toast({
+        title: "Copied to clipboard!",
+        description: "Listing data is ready to be pasted into Google Sheets.",
+      });
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy data to clipboard.",
+      });
+    });
+  };
+
+  const handleDownloadCsv = () => {
+    const data = sortedListings.map(l => [
+      l.listing_id,
+      `"${l.title.replace(/"/g, '""')}"`,
+      l.num_favorers,
+      l.views,
+      differenceInDays(now, new Date(l.original_creation_timestamp * 1000)),
+      new Date(l.last_modified_timestamp * 1000).toISOString(),
+      l.quantity,
+      `"${l.tags.join(', ')}"`,
+      l.url
+    ].join(',')).join('\n');
+    const csv = `${headers.join(',')}\n${data}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.href) {
+      URL.revokeObjectURL(link.href);
+    }
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', 'listings.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Active Listings</CardTitle>
-        <CardDescription>
-          Showing all {listings.length} active listings. Cells highlighted in plum meet your filter criteria. Click headers to sort.
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+          <div>
+            <CardTitle>Active Listings</CardTitle>
+            <CardDescription>
+              Showing all {listings.length} active listings. Cells highlighted in plum meet your filter criteria. Click headers to sort.
+            </CardDescription>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={handleCopyToSheets}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy to Sheets
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadCsv}>
+              <Download className="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="relative w-full overflow-auto border rounded-md">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Listing ID</TableHead>
+                <TableHead>Listing</TableHead>
                 <SortableHeader sortKey="num_favorers">Favorites</SortableHeader>
                 <SortableHeader sortKey="views">Views</SortableHeader>
                 <SortableHeader sortKey="original_creation_timestamp">Age</SortableHeader>
@@ -87,7 +159,11 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
 
                 return (
                   <TableRow key={listing.listing_id}>
-                    <TableCell>{listing.listing_id}</TableCell>
+                    <TableCell className="font-medium max-w-xs truncate">
+                      <a href={listing.url} target="_blank" rel="noopener noreferrer" className="hover:underline" title={listing.title}>
+                        {listing.title}
+                      </a>
+                    </TableCell>
                     <TableCell className={getCellClass(meetsFavs)}>{listing.num_favorers.toLocaleString()}</TableCell>
                     <TableCell className={getCellClass(meetsViews)}>{listing.views.toLocaleString()}</TableCell>
                     <TableCell className={getCellClass(meetsAge)}>
@@ -99,8 +175,8 @@ export function ListingsTable({ listings, filters }: ListingsTableProps) {
                     <TableCell>{listing.quantity}</TableCell>
                     <TableCell>
                        <div className="flex flex-wrap gap-1 max-w-xs">
-                        {listing.tags.slice(0, 5).map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                        {listing.tags.length > 5 && <Badge variant="outline">+{listing.tags.length - 5}</Badge>}
+                        {listing.tags.slice(0, 3).map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                        {listing.tags.length > 3 && <Badge variant="outline">+{listing.tags.length - 3}</Badge>}
                       </div>
                     </TableCell>
                     <TableCell>
