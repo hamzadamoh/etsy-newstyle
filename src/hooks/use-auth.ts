@@ -32,15 +32,8 @@ export const useAuth = () => {
   };
   
   const sendPasswordReset = async (email: string) => {
-     // Check if email is registered
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      throw new Error("This email is not registered with an account.");
-    }
-    
+    // Firebase Auth's sendPasswordResetEmail handles the check internally.
+    // It will not throw an error if the email does not exist, for security reasons.
     return sendPasswordResetEmail(auth, email);
   };
 
