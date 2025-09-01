@@ -14,6 +14,7 @@ import { getKeywordData, type KeywordResearchState } from "@/app/actions";
 import { generateKeywordIdeas } from "@/ai/flows/keyword-research-flow";
 import { Wand2, Search } from "lucide-react";
 import { KeywordOverviewChart } from "./keyword-overview-chart";
+import { CommonTagsChart } from "./common-tags-chart";
 
 
 const initialEtsyState: KeywordResearchState = {
@@ -155,7 +156,10 @@ export function KeywordResearch() {
       )}
             
       {etsyState.listings.length > 0 && (
+        <>
+          <CommonTagsChart listings={etsyState.listings} />
           <TopListingsTable listings={etsyState.listings} count={etsyState.count} />
+        </>
       )}
     </div>
   );
