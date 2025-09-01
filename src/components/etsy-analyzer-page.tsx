@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, useActionState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useActionState } from "react";
 import { getEtsyShopData, type ActionState } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/submit-button";
 import { ShopInfo } from "@/components/shop-info";
 import { ListingsTable } from "@/components/listings-table";
-import { SummaryCard } from "@/components/summary-card";
 import type { Filters, EtsyListing } from "@/lib/types";
 
 const initialState: ActionState = {
@@ -138,7 +138,6 @@ export function EtsyAnalyzerPage() {
       {state.shop && (
          <div ref={resultsRef} className="mt-8 space-y-8">
            <ShopInfo shop={state.shop} />
-           {filteredListings.length > 0 && <SummaryCard listings={filteredListings} />}
            {state.listings.length > 0 ? (
              <ListingsTable listings={state.listings} filters={filters} />
            ) : (
