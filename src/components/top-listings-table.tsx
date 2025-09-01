@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo } from "react";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { ArrowUpDown, Search, Heart, Columns, Filter, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -134,7 +136,16 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                 <SortableHeader sortKey="sales">Sales</SortableHeader>
                 <TableHead>Sales trend</TableHead>
                 <SortableHeader sortKey="revenue">Revenue</SortableHeader>
-                <SortableHeader sortKey="lqs">LQS</SortableHeader>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SortableHeader sortKey="lqs">LQS</SortableHeader>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Listing Quality Score</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <SortableHeader sortKey="price">Price</SortableHeader>
                 <TableHead></TableHead>
               </TableRow>
