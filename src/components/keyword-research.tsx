@@ -12,7 +12,8 @@ import { SubmitButton } from "@/components/submit-button";
 import { TopListingsTable } from "@/components/top-listings-table";
 import { getKeywordData, type KeywordResearchState } from "@/app/actions";
 import { generateKeywordIdeas } from "@/ai/flows/keyword-research-flow";
-import { Wand2, Search, Users } from "lucide-react";
+import { Wand2, Search } from "lucide-react";
+import { KeywordOverviewChart } from "./keyword-overview-chart";
 
 
 const initialEtsyState: KeywordResearchState = {
@@ -24,10 +25,17 @@ const initialEtsyState: KeywordResearchState = {
 export function KeywordResearch() {
   const { toast } = useToast();
   const [keyword, setKeyword] = useState("");
+  const [submittedKeyword, setSubmittedKeyword] = useState("");
   const [relatedKeywords, setRelatedKeywords] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const [etsyState, formAction, isEtsyLoading] = useActionState(getKeywordData, initialEtsyState);
+  
+  const handleFormAction = (formData: FormData) => {
+    const kw = formData.get("keyword") as string;
+    setSubmittedKeyword(kw);
+    formAction(formData);
+  }
 
   useEffect(() => {
     if (etsyState.error) {
@@ -70,7 +78,7 @@ export function KeywordResearch() {
     setKeyword(kw);
     const formData = new FormData();
     formData.append('keyword', kw);
-    formAction(formData);
+    handleFormAction(formData);
   };
   
   const isLoading = isEtsyLoading || isAiLoading;
@@ -78,7 +86,7 @@ export function KeywordResearch() {
   return (
     <div className="space-y-8">
       <Card>
-        <form action={formAction}>
+        <form action={handleFormAction}>
           <CardHeader>
             <CardTitle>Keyword Search</CardTitle>
             <CardDescription>
@@ -111,53 +119,34 @@ export function KeywordResearch() {
           </CardFooter>
         </form>
       </Card>
+      
+      {etsyState.count > 0 && <KeywordOverviewChart keyword={submittedKeyword} competition={etsyState.count} />}
 
-      {(relatedKeywords.length > 0 || etsyState.count > 0) && (
-        <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {relatedKeywords.length > 0 && (
-                <Card>
-                    <CardHeader>
-                    <CardTitle>AI-Generated Ideas</CardTitle>
-                    <CardDescription>Click a keyword to analyze it.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                        {relatedKeywords.map((kw) => (
-                        <Badge
-                            key={kw}
-                            variant="secondary"
-                            className="cursor-pointer hover:bg-primary/20"
-                            onClick={() => handleKeywordClick(kw)}
-                        >
-                            {kw}
-                        </Badge>
-                        ))}
-                    </div>
-                    </CardContent>
-                </Card>
-                )}
-                {etsyState.count > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Competition</CardTitle>
-                            <CardDescription>Total listings for this keyword.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex items-center gap-4">
-                            <Users className="h-8 w-8 text-muted-foreground" />
-                            <div>
-                                <p className="text-3xl font-bold">{etsyState.count.toLocaleString()}</p>
-                                <p className="text-sm text-muted-foreground">Listings</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+      {(relatedKeywords.length > 0) && (
+        <Card>
+            <CardHeader>
+            <CardTitle>AI-Generated Ideas</CardTitle>
+            <CardDescription>Click a keyword to analyze it.</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <div className="flex flex-wrap gap-2">
+                {relatedKeywords.map((kw) => (
+                <Badge
+                    key={kw}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-primary/20"
+                    onClick={() => handleKeywordClick(kw)}
+                >
+                    {kw}
+                </Badge>
+                ))}
             </div>
+            </CardContent>
+        </Card>
+      )}
             
-            {etsyState.listings.length > 0 && (
-                <TopListingsTable listings={etsyState.listings} count={etsyState.count} />
-            )}
-        </div>
+      {etsyState.listings.length > 0 && (
+          <TopListingsTable listings={etsyState.listings} count={etsyState.count} />
       )}
     </div>
   );
