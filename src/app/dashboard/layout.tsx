@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Keyword Research">
-                <Link href="#">
+                <Link href="/dashboard/keyword-research">
                   <Search />
                   <span>Keyword Research</span>
                 </Link>
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Tag Generator">
-                <Link href="#">
+                <Link href="/dashboard/tag-generator">
                   <Tag />
                   <span>Tag Generator</span>
                 </Link>
@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Competitor Tracker">
-                <Link href="#">
+                <Link href="/dashboard/competitor-tracker">
                   <Users />
                   <span>Competitor Tracker</span>
                 </Link>
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Niche Finder">
-                <Link href="#">
+                <Link href="/dashboard/niche-finder">
                   <TrendingUp />
                   <span>Niche Finder</span>
                 </Link>
