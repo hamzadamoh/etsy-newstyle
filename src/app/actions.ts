@@ -3,11 +3,15 @@
 import { z } from "zod";
 import type { EtsyShop, EtsyListing } from "@/lib/types";
 
-const FormSchema = z.object({
+const singleShopSchema = z.object({
   store: z.string().min(1, "Store name is required."),
 });
 
-export interface ActionState {
+const multiShopSchema = z.object({
+  stores: z.string().min(1, "At least one store name is required."),
+});
+
+export interface SingleShopActionState {
   shop: EtsyShop | null;
   listings: EtsyListing[];
   error: string | null;
@@ -15,10 +19,10 @@ export interface ActionState {
 }
 
 export async function getEtsyShopData(
-  prevState: ActionState,
+  prevState: SingleShopActionState,
   formData: FormData
-): Promise<ActionState> {
-  const validatedFields = FormSchema.safeParse({
+): Promise<SingleShopActionState> {
+  const validatedFields = singleShopSchema.safeParse({
     store: formData.get("store"),
   });
 
@@ -68,4 +72,59 @@ export async function getEtsyShopData(
     console.error(error);
     return { shop: null, listings: [], error: "An unexpected error occurred." };
   }
+}
+
+export interface MultiShopActionState {
+  shops: EtsyShop[];
+  errors: string[];
+}
+
+
+export async function getCompetitorData(
+  prevState: MultiShopActionState,
+  formData: FormData
+): Promise<MultiShopActionState> {
+  const validatedFields = multiShopSchema.safeParse({
+    stores: formData.get("stores"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      shops: [],
+      errors: ["Invalid store names provided."],
+    };
+  }
+  
+  const storeNames = validatedFields.data.stores.split(',').map(s => s.trim()).filter(Boolean);
+  if (storeNames.length === 0) {
+    return { shops: [], errors: ["Please enter at least one store name."] };
+  }
+  
+  const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
+  const shops: EtsyShop[] = [];
+  const errors: string[] = [];
+
+  for (const store of storeNames) {
+    try {
+      const shopUrl = `https://api.etsy.com/v3/application/shops?shop_name=${store}`;
+      const shopRes = await fetch(shopUrl, {
+        headers: { "x-api-key": apiKey },
+      });
+
+      if (shopRes.ok) {
+        const shopData = await shopRes.json();
+        if (shopData.results && shopData.results.length > 0) {
+          shops.push(shopData.results[0]);
+        } else {
+          errors.push(`Shop "${store}" not found.`);
+        }
+      } else {
+        errors.push(`Failed to fetch data for "${store}".`);
+      }
+    } catch (error) {
+       errors.push(`An unexpected error occurred for "${store}".`);
+    }
+  }
+
+  return { shops, errors };
 }
