@@ -60,7 +60,7 @@ export async function getEtsyShopData(
     const shop: EtsyShop = shopData.results[0];
     const shopId = shop.shop_id;
 
-    const listingsUrl = `https://api.etsy.com/v3/application/shops/${shopId}/listings/active?limit=100`;
+    const listingsUrl = `https://api.etsy.com/v3/application/shops/${shopId}/listings/active?limit=100&includes=MainImage`;
     const listingsRes = await fetch(listingsUrl, {
       headers: { "x-api-key": apiKey },
     });
@@ -70,7 +70,10 @@ export async function getEtsyShopData(
     }
 
     const listingsData = await listingsRes.json();
-    const listings: EtsyListing[] = listingsData.results;
+    const listings: EtsyListing[] = listingsData.results.map((l: any) => ({
+      ...l,
+      image_url: l.MainImage?.url_75x75
+    }));
 
     return { shop, listings, error: null };
   } catch (error) {
@@ -161,7 +164,7 @@ export async function getKeywordData(
     const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
     
     try {
-        const listingsUrl = `https://api.etsy.com/v3/application/listings/active?keywords=${encodeURIComponent(keyword)}&limit=12&sort_on=score`;
+        const listingsUrl = `https://api.etsy.com/v3/application/listings/active?keywords=${encodeURIComponent(keyword)}&limit=100&sort_on=score&includes=MainImage`;
         const listingsRes = await fetch(listingsUrl, {
             headers: { "x-api-key": apiKey },
         });
@@ -176,8 +179,13 @@ export async function getKeywordData(
 
         const listingsData = await listingsRes.json();
         
+        const listings: EtsyListing[] = listingsData.results.map((l: any) => ({
+            ...l,
+            image_url: l.MainImage?.url_75x75
+        }));
+
         return {
-            listings: listingsData.results,
+            listings: listings,
             count: listingsData.count,
             error: null,
         };

@@ -21,6 +21,7 @@ export interface EtsyListing {
   quantity: number;
   tags: string[];
   url: string;
+  image_url: string | null;
 }
 
 export interface Filters {
