@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect } from "react";
@@ -42,19 +43,27 @@ export function CompetitorTracker() {
       shop.url
     ].join('\t')).join('\n');
     const tsv = `${headers.join('\t')}\n${rows}`;
-    navigator.clipboard.writeText(tsv).then(() => {
+    
+    const textArea = document.createElement("textarea");
+    textArea.value = tsv;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
       toast({
         title: "Copied to clipboard!",
         description: "Competitor data is ready to be pasted into Google Sheets.",
       });
-    }).catch(err => {
+    } catch (err) {
       console.error("Failed to copy text: ", err);
       toast({
         variant: "destructive",
         title: "Copy Failed",
         description: "Could not copy data to clipboard.",
       });
-    });
+    }
+    document.body.removeChild(textArea);
   };
 
   return (
