@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useState, useRef, useActionState } from "react";
 import { getEtsyShopData, type ActionState } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,7 +21,7 @@ const initialState: ActionState = {
 };
 
 export function EtsyAnalyzerPage() {
-  const [state, formAction] = useFormState(getEtsyShopData, initialState);
+  const [state, formAction] = useActionState(getEtsyShopData, initialState);
   const [filters, setFilters] = useState<Filters>({ favorites: 5, age: 30, views: 5 });
   const [filteredListings, setFilteredListings] = useState<EtsyListing[]>([]);
   const { toast } = useToast();
