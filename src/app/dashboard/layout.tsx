@@ -21,11 +21,17 @@ import {
   User,
   ClipboardList,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar
+        className="border-r border-border/20"
+        variant="inset"
+        collapsible="icon"
+      >
+        <div className="flex h-full flex-col justify-between p-2">
         <SidebarHeader>
            <div className="flex items-center gap-2 p-2">
              <Image
@@ -34,8 +40,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               height={32}
               alt="Etsy Logo"
               data-ai-hint="logo"
+              className="invert"
             />
-            <h1 className="text-lg font-semibold">Etsy Analyzer</h1>
+            <h1 className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Etsy Analyzer</h1>
             <SidebarTrigger className="ml-auto" />
           </div>
         </SidebarHeader>
@@ -45,7 +52,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard">
                 <SidebarMenuButton tooltip="Shop Analyzer">
                     <Store />
-                    <span>Shop Analyzer</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Shop Analyzer</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -53,7 +60,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard/keyword-research">
                 <SidebarMenuButton tooltip="Keyword Research">
                     <Search />
-                    <span>Keyword Research</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Keyword Research</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -61,7 +68,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard/tag-generator">
                 <SidebarMenuButton tooltip="Tag Generator">
                     <Tag />
-                    <span>Tag Generator</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Tag Generator</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -69,7 +76,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard/competitor-tracker">
                 <SidebarMenuButton tooltip="Bulk Shop Analyzer">
                     <ClipboardList />
-                    <span>Bulk Shop Analyzer</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Bulk Shop Analyzer</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -77,7 +84,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link href="/dashboard/niche-finder">
                 <SidebarMenuButton tooltip="Niche Finder">
                     <TrendingUp />
-                    <span>Niche Finder</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Niche Finder</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -87,7 +94,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <Link href="#">
                     <SidebarMenuButton tooltip="Profile">
                     <User />
-                    <span>Your Profile</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Your Profile</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
@@ -95,18 +102,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <Link href="/">
                     <SidebarMenuButton tooltip="Logout">
                     <LogOut />
-                    <span>Logout</span>
+                    <span className="group-data-[collapsible=icon]:hidden">Logout</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </div>
+        </div>
       </Sidebar>
       <SidebarInset>
         <main className="p-4 sm:p-6 lg:p-8">
-          {children}
+          <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 ease-in-out">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+    
