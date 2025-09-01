@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,16 @@ interface TopListingsTableProps {
     count: number;
 }
 
+type AugmentedEtsyListing = EtsyListing & {
+    image_url: string;
+    monthly_sales: number;
+    sales: number;
+    revenue: number;
+    lqs: number;
+    price: number;
+    sales_trend: { y: number }[];
+};
+
 type SortKey = "title" | "monthly_sales" | "sales" | "revenue" | "lqs" | "price";
 type SortDirection = "asc" | "desc";
 
@@ -39,26 +49,24 @@ const generateSalesTrend = () => {
 };
 
 // Augment listings with placeholder data
-const useAugmentedListings = (listings: EtsyListing[]) => {
-    return useMemo(() => {
-        return listings.map(listing => {
-            const sales = listing.num_favorers * (Math.floor(Math.random() * 5) + 1);
-            const price = parseFloat((Math.random() * 50 + 5).toFixed(2));
-            const revenue = sales * price;
-            const monthlySales = Math.floor(sales / (Math.random() * 3 + 1));
-            
-            return {
-                ...listing,
-                image_url: `https://picsum.photos/seed/${listing.listing_id}/40/40`,
-                monthly_sales: monthlySales,
-                sales: sales,
-                revenue: revenue,
-                lqs: Math.floor(Math.random() * 30) + 70, // Listing Quality Score
-                price: price,
-                sales_trend: generateSalesTrend()
-            }
-        });
-    }, [listings]);
+const augmentListingsData = (listings: EtsyListing[]): AugmentedEtsyListing[] => {
+    return listings.map(listing => {
+        const sales = listing.num_favorers * (Math.floor(Math.random() * 5) + 1);
+        const price = parseFloat((Math.random() * 50 + 5).toFixed(2));
+        const revenue = sales * price;
+        const monthlySales = Math.floor(sales / (Math.random() * 3 + 1));
+        
+        return {
+            ...listing,
+            image_url: `https://picsum.photos/seed/${listing.listing_id}/40/40`,
+            monthly_sales: monthlySales,
+            sales: sales,
+            revenue: revenue,
+            lqs: Math.floor(Math.random() * 30) + 70, // Listing Quality Score
+            price: price,
+            sales_trend: generateSalesTrend()
+        }
+    });
 };
 
 
@@ -67,7 +75,12 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const { toast } = useToast();
   
-  const augmentedListings = useAugmentedListings(listings);
+  const [augmentedListings, setAugmentedListings] = useState<AugmentedEtsyListing[]>([]);
+
+  useEffect(() => {
+    // Generate augmented data on the client side to avoid hydration mismatch
+    setAugmentedListings(augmentListingsData(listings));
+  }, [listings]);
   
   const sortedListings = useMemo(() => {
     return [...augmentedListings].sort((a, b) => {
@@ -102,6 +115,19 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
       </Button>
     </TableHead>
   );
+  
+  if (augmentedListings.length === 0) {
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Top listings</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="text-center text-muted-foreground py-8">Loading listings data...</div>
+            </CardContent>
+        </Card>
+      )
+  }
 
   return (
     <Card>
