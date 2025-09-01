@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/submit-button";
 import { ShopInfo } from "@/components/shop-info";
 import { ListingsTable } from "@/components/listings-table";
+import { ProductTimelineChart } from "@/components/product-timeline-chart";
 import type { Filters, EtsyListing } from "@/lib/types";
 
 const initialState: ActionState = {
@@ -139,7 +140,10 @@ export function EtsyAnalyzerPage() {
          <div ref={resultsRef} className="mt-8 space-y-8">
            <ShopInfo shop={state.shop} />
            {state.listings.length > 0 ? (
-             <ListingsTable listings={state.listings} filters={filters} />
+            <>
+              <ProductTimelineChart listings={state.listings} />
+              <ListingsTable listings={state.listings} filters={filters} />
+            </>
            ) : (
              <Card>
                 <CardHeader>
