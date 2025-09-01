@@ -1,8 +1,13 @@
+
+"use client";
+
 import Image from "next/image";
 import { differenceInDays, formatDistanceToNow } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Star, Package, ShoppingCart, Calendar, Shirt } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { ExternalLink, Star, Package, ShoppingCart, Calendar, Shirt, Copy } from "lucide-react";
 import type { EtsyShop } from "@/lib/types";
 
 interface ShopInfoProps {
@@ -20,9 +25,30 @@ const InfoPill = ({ icon, label, value }: { icon: React.ReactNode, label: string
 );
 
 export function ShopInfo({ shop }: ShopInfoProps) {
+  const { toast } = useToast();
   const shopAgeDays = differenceInDays(new Date(), new Date(shop.create_date * 1000));
   const shopAgeFormatted = formatDistanceToNow(new Date(shop.create_date * 1000), { addSuffix: true });
   const isNewShop = shopAgeDays <= 90;
+
+  const handleCopyToSheets = () => {
+    const headers = "Total Sales\tActive Listings\tShop Age";
+    const values = `${shop.transaction_sold_count}\t${shop.listing_active_count}\t${shopAgeFormatted}`;
+    const clipboardText = `${headers}\n${values}`;
+
+    navigator.clipboard.writeText(clipboardText).then(() => {
+      toast({
+        title: "Copied to clipboard!",
+        description: "Shop data is ready to be pasted into Google Sheets.",
+      });
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy data to clipboard.",
+      });
+    });
+  };
 
   return (
     <Card>
@@ -48,6 +74,10 @@ export function ShopInfo({ shop }: ShopInfoProps) {
             </a>
           </div>
         </div>
+        <Button variant="outline" size="sm" onClick={handleCopyToSheets}>
+          <Copy className="mr-2 h-4 w-4" />
+          Copy to Sheets
+        </Button>
       </CardHeader>
       <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <InfoPill icon={<ShoppingCart className="h-6 w-6" />} label="Total Sales" value={shop.transaction_sold_count.toLocaleString()} />
