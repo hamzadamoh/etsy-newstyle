@@ -4,75 +4,75 @@
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
+    --background: 220 13% 10%;
     --foreground: 210 40% 98%;
-    --card: 224 71% 10%;
+    --card: 220 13% 18%;
     --card-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
+    --popover: 220 13% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 262 82% 57%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 28% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 262 82% 57%;
+    --ring: 25 95% 53%;
     --radius: 0.5rem;
-    --chart-1: 262 82% 57%;
-    --chart-2: 224 71% 40%;
-    --chart-3: 180 50% 40%;
+    --chart-1: 25 95% 53%;
+    --chart-2: 180 50% 40%;
+    --chart-3: 262 82% 57%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --sidebar-background: 224 71% 4%;
+    --sidebar-background: 220 13% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 262 82% 57%;
+    --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 262 82% 57%;
+    --sidebar-accent: 25 95% 53%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 25%;
-    --sidebar-ring: 262 82% 57%;
+    --sidebar-ring: 25 95% 53%;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    --background: 220 13% 10%;
     --foreground: 210 40% 98%;
-    --card: 224 71% 10%;
+    --card: 220 13% 18%;
     --card-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
+    --popover: 220 13% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 262 82% 57%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 28% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 262 82% 57%;
+    --ring: 25 95% 53%;
     --radius: 0.5rem;
-    --chart-1: 262 82% 57%;
-    --chart-2: 224 71% 40%;
-    --chart-3: 180 50% 40%;
+    --chart-1: 25 95% 53%;
+    --chart-2: 180 50% 40%;
+    --chart-3: 262 82% 57%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --sidebar-background: 224 71% 4%;
+    --sidebar-background: 220 13% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 262 82% 57%;
+    --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 262 82% 57%;
+    --sidebar-accent: 25 95% 53%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 25%;
-    --sidebar-ring: 262 82% 57%;
+    --sidebar-ring: 25 95% 53%;
   }
 }
 
@@ -83,44 +83,5 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-  }
-  
-  .dimensional-bg {
-    position: relative;
-    overflow: hidden;
-    background: radial-gradient(ellipse at 70% 30%, hsl(262, 82%, 20%) 0%, transparent, 40%),
-                radial-gradient(ellipse at 30% 70%, hsl(224, 71%, 15%) 0%, transparent 40%),
-                hsl(var(--background));
-  }
-  
-  .glass-card {
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--border) / 0.2);
-    box-shadow: 0 8px 32px 0 hsl(var(--background) / 0.37);
-  }
-}
-
-@media print {
-  body {
-    background-color: white;
-    color: black;
-  }
-  .no-print {
-    display: none;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 10px;
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 4px;
-    text-align: left;
-  }
-  th {
-    background-color: #f2f2f2;
   }
 }

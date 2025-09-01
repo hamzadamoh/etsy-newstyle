@@ -22,18 +22,19 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar
-        className="border-r border-border/20"
-        variant="inset"
+        className="border-r"
+        variant="sidebar"
         collapsible="icon"
       >
-        <div className="flex h-full flex-col justify-between p-2">
+        <div className="flex h-full flex-col justify-between">
         <SidebarHeader>
-           <div className="flex items-center gap-2 p-2">
+           <div className="flex items-center gap-2 p-4">
              <Image
               src="https://seeklogo.com/images/E/etsy-logo-68ADD687A5-seeklogo.com.png"
               width={32}
@@ -46,7 +47,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <SidebarTrigger className="ml-auto" />
           </div>
         </SidebarHeader>
-        <div className="flex flex-col justify-between h-full">
+        <div className="flex flex-col justify-between h-full p-2">
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/dashboard">
@@ -111,11 +112,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </Sidebar>
       <SidebarInset>
-        <main className="p-4 sm:p-6 lg:p-8">
-          <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 ease-in-out">
-            {children}
-          </div>
-        </main>
+        <ScrollArea className="h-full">
+            <main className="p-4 sm:p-6 lg:p-8">
+                <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500 ease-in-out">
+                    {children}
+                </div>
+            </main>
+        </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
   );

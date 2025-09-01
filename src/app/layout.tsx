@@ -26,12 +26,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-sans antialiased dimensional-bg">
+      <body className="font-sans antialiased">
         {children}
         <Toaster />
       </body>
     </html>
   );
 }
-
-    
