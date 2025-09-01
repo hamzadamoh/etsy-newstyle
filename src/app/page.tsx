@@ -23,14 +23,6 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center z-10">
         <div className="flex items-center gap-2">
-          <Image
-            src="https://seeklogo.com/images/E/etsy-logo-68ADD687A5-seeklogo.com.png"
-            width={40}
-            height={40}
-            alt="Etsy Logo"
-            data-ai-hint="logo"
-            className="invert"
-          />
           <h1 className="text-2xl font-bold">Etsy Analyzer</h1>
         </div>
         <nav>

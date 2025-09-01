@@ -63,14 +63,6 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
         <div className="flex h-full flex-col justify-between">
         <SidebarHeader>
            <div className="flex items-center gap-2 p-4">
-             <Image
-              src="https://seeklogo.com/images/E/etsy-logo-68ADD687A5-seeklogo.com.png"
-              width={32}
-              height={32}
-              alt="Etsy Logo"
-              data-ai-hint="logo"
-              className="invert"
-            />
             <h1 className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Etsy Analyzer</h1>
             <SidebarTrigger className="ml-auto" />
           </div>
