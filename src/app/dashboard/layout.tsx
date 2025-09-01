@@ -1,4 +1,8 @@
+
+'use client';
+
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -23,8 +27,31 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuthContext } from '@/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
+import { useEffect } from 'react';
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+function DashboardLayoutContent({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuthContext();
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+  
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
+  if (loading || !user) {
+    // You can return a loading spinner or null here
+    return null;
+  }
+
   return (
     <SidebarProvider>
       <Sidebar
@@ -95,17 +122,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <Link href="#">
                     <SidebarMenuButton tooltip="Profile">
                     <User />
-                    <span className="group-data-[collapsible=icon]:hidden">Your Profile</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{user.email}</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <Link href="/">
-                    <SidebarMenuButton tooltip="Logout">
-                    <LogOut />
-                    <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-                    </SidebarMenuButton>
-                </Link>
+                <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+                <LogOut />
+                <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+                </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </div>
@@ -122,4 +147,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return <DashboardLayoutContent>{children}</DashboardLayoutContent>;
 }

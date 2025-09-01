@@ -1,9 +1,24 @@
+
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BarChart, Search, Tag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Auth } from '@/components/auth';
 
 export default function LandingPage() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    // You might want to redirect the user or update the UI here
+    // For now, we can just close the modal and let the user navigate
+    window.location.href = '/dashboard';
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center z-10">
@@ -36,11 +51,9 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="mt-10 flex justify-center gap-4">
-            <Button size="lg" asChild className="group">
-              <Link href="/dashboard">
-                Get Started
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+            <Button size="lg" onClick={() => setIsAuthModalOpen(true)} className="group">
+              Get Started
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="#features">
@@ -91,6 +104,15 @@ export default function LandingPage() {
           <p>&copy; 2024 Etsy Analyzer. All rights reserved.</p>
         </div>
       </footer>
+
+      <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Authentication</DialogTitle>
+          </DialogHeader>
+          <Auth onAuthSuccess={handleAuthSuccess} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
