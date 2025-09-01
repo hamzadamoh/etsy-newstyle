@@ -32,8 +32,17 @@ export const useAuth = () => {
   };
   
   const sendPasswordReset = async (email: string) => {
-    // Firebase Auth's sendPasswordResetEmail handles the check internally.
-    // It will not throw an error if the email does not exist, for security reasons.
+    // First, check if a user with this email exists in the Firestore database.
+    // This is a security measure to prevent email enumeration.
+    const q = query(collection(db, 'users'), where('email', '==', email));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      // Throw an error if the email is not found in our user records.
+      throw new Error("This email is not registered with an account.");
+    }
+    
+    // If the user exists, proceed with sending the password reset email via Firebase Auth.
     return sendPasswordResetEmail(auth, email);
   };
 
