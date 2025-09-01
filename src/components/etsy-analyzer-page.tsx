@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useActionState } from "react-dom";
+import { useEffect, useState, useRef, useActionState } from "react";
 import { getEtsyShopData, type SingleShopActionState } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
