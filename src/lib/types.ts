@@ -13,6 +13,7 @@ export interface EtsyShop {
 export interface EtsyListing {
   listing_id: number;
   title: string;
+  price: number;
   listing_type: string;
   num_favorers: number;
   views: number;

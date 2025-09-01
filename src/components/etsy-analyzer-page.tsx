@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useActionState } from "react";
-import { getEtsyShopData, type ActionState } from "@/app/actions";
+import { useActionState } from "react-dom";
+import { getEtsyShopData, type SingleShopActionState } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import { ListingsTable } from "@/components/listings-table";
 import { ProductTimelineChart } from "@/components/product-timeline-chart";
 import type { Filters, EtsyListing } from "@/lib/types";
 
-const initialState: ActionState = {
+const initialState: SingleShopActionState = {
   shop: null,
   listings: [],
   error: null,

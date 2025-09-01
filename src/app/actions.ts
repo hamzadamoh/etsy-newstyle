@@ -72,6 +72,7 @@ export async function getEtsyShopData(
     const listingsData = await listingsRes.json();
     const listings: EtsyListing[] = listingsData.results.map((l: any) => ({
       ...l,
+      price: parseFloat(l.price?.amount) / l.price?.divisor || 0,
       image_url: l.MainImage?.url_75x75
     }));
 
@@ -142,6 +143,8 @@ export interface KeywordResearchState {
   listings: EtsyListing[];
   count: number;
   error: string | null;
+  avgPrice: number;
+  avgFavorites: number;
 }
 
 export async function getKeywordData(
@@ -153,11 +156,7 @@ export async function getKeywordData(
     });
 
     if (!validatedFields.success) {
-        return {
-            listings: [],
-            count: 0,
-            error: "Invalid keyword.",
-        };
+        return { ...prevState, error: "Invalid keyword." };
     }
 
     const { keyword } = validatedFields.data;
@@ -170,31 +169,42 @@ export async function getKeywordData(
         });
 
         if (!listingsRes.ok) {
-            return {
-                listings: [],
-                count: 0,
-                error: "Failed to fetch keyword data from Etsy.",
-            };
+            return { ...prevState, error: "Failed to fetch keyword data from Etsy." };
         }
 
         const listingsData = await listingsRes.json();
         
+        if (!listingsData.results || listingsData.results.length === 0) {
+            return {
+                listings: [],
+                count: 0,
+                avgPrice: 0,
+                avgFavorites: 0,
+                error: null,
+            };
+        }
+
         const listings: EtsyListing[] = listingsData.results.map((l: any) => ({
             ...l,
+            price: parseFloat(l.price?.amount) / l.price?.divisor || 0,
             image_url: l.MainImage?.url_75x75
         }));
+        
+        const totalFavorites = listings.reduce((sum, l) => sum + l.num_favorers, 0);
+        const totalPrice = listings.reduce((sum, l) => sum + l.price, 0);
+
+        const avgFavorites = listings.length > 0 ? totalFavorites / listings.length : 0;
+        const avgPrice = listings.length > 0 ? totalPrice / listings.length : 0;
 
         return {
             listings: listings,
             count: listingsData.count,
+            avgPrice: avgPrice,
+            avgFavorites: avgFavorites,
             error: null,
         };
     } catch (error) {
         console.error("Keyword research error:", error);
-        return {
-            listings: [],
-            count: 0,
-            error: "An unexpected error occurred.",
-        };
+        return { ...prevState, error: "An unexpected error occurred." };
     }
 }

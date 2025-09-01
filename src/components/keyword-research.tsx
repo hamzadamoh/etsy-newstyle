@@ -20,6 +20,8 @@ const initialEtsyState: KeywordResearchState = {
   listings: [],
   count: 0,
   error: null,
+  avgPrice: 0,
+  avgFavorites: 0,
 };
 
 export function KeywordResearch() {
@@ -120,7 +122,14 @@ export function KeywordResearch() {
         </form>
       </Card>
       
-      {etsyState.count > 0 && <KeywordOverviewChart keyword={submittedKeyword} competition={etsyState.count} />}
+      {etsyState.count > 0 && (
+        <KeywordOverviewChart 
+            keyword={submittedKeyword} 
+            competition={etsyState.count}
+            avgPrice={etsyState.avgPrice}
+            avgFavorites={etsyState.avgFavorites}
+        />
+      )}
 
       {(relatedKeywords.length > 0) && (
         <Card>
