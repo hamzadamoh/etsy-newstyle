@@ -7,9 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ExternalLink, Package, ShoppingCart, Star } from "lucide-react";
+import { ExternalLink, Package, ShoppingCart, Star, Copy } from "lucide-react";
 import Image from "next/image";
 
 const initialState: MultiShopActionState = {
@@ -31,12 +32,37 @@ export function CompetitorTracker() {
     }
   }, [state.errors, toast]);
 
+  const handleCopyToSheets = () => {
+    const headers = ["Shop Name", "Total Sales", "Followers", "Active Listings", "URL"];
+    const rows = state.shops.map(shop => [
+      shop.shop_name,
+      shop.transaction_sold_count,
+      shop.num_favorers,
+      shop.listing_active_count,
+      shop.url
+    ].join('\t')).join('\n');
+    const tsv = `${headers.join('\t')}\n${rows}`;
+    navigator.clipboard.writeText(tsv).then(() => {
+      toast({
+        title: "Copied to clipboard!",
+        description: "Competitor data is ready to be pasted into Google Sheets.",
+      });
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy data to clipboard.",
+      });
+    });
+  };
+
   return (
     <div className="max-w-5xl mx-auto">
       <Card>
         <form action={formAction}>
           <CardHeader>
-            <CardTitle>Track Competitors</CardTitle>
+            <CardTitle>Analyze Shops</CardTitle>
             <CardDescription>
               Enter a list of Etsy shop names separated by commas to compare their key metrics.
             </CardDescription>
@@ -53,7 +79,7 @@ export function CompetitorTracker() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <SubmitButton>Track Shops</SubmitButton>
+            <SubmitButton>Analyze Shops</SubmitButton>
           </CardFooter>
         </form>
       </Card>
@@ -61,10 +87,18 @@ export function CompetitorTracker() {
       {state.shops.length > 0 && (
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Competitor Comparison</CardTitle>
-            <CardDescription>
-              Here's a side-by-side look at the shops you're tracking.
-            </CardDescription>
+             <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+                <div>
+                    <CardTitle>Competitor Comparison</CardTitle>
+                    <CardDescription>
+                    Here's a side-by-side look at the shops you're tracking.
+                    </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleCopyToSheets}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy to Sheets
+                </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="relative w-full overflow-auto border rounded-md">

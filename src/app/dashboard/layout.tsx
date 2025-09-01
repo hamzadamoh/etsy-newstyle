@@ -19,6 +19,7 @@ import {
   Store,
   LogOut,
   User,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -66,9 +67,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <Link href="/dashboard/competitor-tracker">
-                <SidebarMenuButton tooltip="Competitor Tracker">
-                    <Users />
-                    <span>Competitor Tracker</span>
+                <SidebarMenuButton tooltip="Bulk Shop Analyzer">
+                    <ClipboardList />
+                    <span>Bulk Shop Analyzer</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
