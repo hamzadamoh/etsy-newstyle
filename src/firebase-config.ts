@@ -8,13 +8,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyCj32onIpmDZLazMuW4RlqsLK6hI9hg144",
+  authDomain: "etsy-6a694.firebaseapp.com",
+  projectId: "etsy-6a694",
+  storageBucket: "etsy-6a694.firebasestorage.app",
+  messagingSenderId: "120161962221",
+  appId: "1:120161962221:web:b734fb0c05306f5554e4e4",
+  measurementId: "G-910GTKGRMZ"
 };
 
 // Initialize Firebase
