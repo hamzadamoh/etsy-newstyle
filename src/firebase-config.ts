@@ -1,4 +1,3 @@
-
 // This is a placeholder for your Firebase configuration.
 // In a real application, you would replace this with the actual config object from your Firebase project console.
 // It is safe to expose this configuration on the client-side.
@@ -9,12 +8,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "your-auth-domain",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "your-storage-bucket",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "your-messaging-sender-id",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "your-app-id",
+  apiKey: "AIzaSyCj32onIpmDZLazMuW4RlqsLK6hI9hg144",
+  authDomain: "etsy-6a694.firebaseapp.com",
+  projectId: "etsy-6a694",
+  storageBucket: "etsy-6a694.firebasestorage.app",
+  messagingSenderId: "120161962221",
+  appId: "1:120161962221:web:b734fb0c05306f5554e4e4",
+  measurementId: "G-910GTKGRMZ"
 };
 
 // Initialize Firebase
