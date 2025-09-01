@@ -6,7 +6,7 @@ import {
   signOut,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { setDoc, doc, getDocs, query, where, collection } from 'firebase/firestore';
+import { setDoc, doc } from 'firebase/firestore';
 
 export const useAuth = () => {
   const signUp = async (email: string, password: string) => {
@@ -31,18 +31,10 @@ export const useAuth = () => {
     return signOut(auth);
   };
   
-  const sendPasswordReset = async (email: string) => {
-    // First, check if a user with this email exists in the Firestore database.
-    // This is a security measure to prevent email enumeration.
-    const q = query(collection(db, 'users'), where('email', '==', email));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      // Throw an error if the email is not found in our user records.
-      throw new Error("This email is not registered with an account.");
-    }
-    
-    // If the user exists, proceed with sending the password reset email via Firebase Auth.
+  const sendPasswordReset = (email: string) => {
+    // Rely directly on Firebase Authentication. It will not throw an error
+    // if the user does not exist, but will only send an email if they do.
+    // This is the standard and secure way to handle password resets.
     return sendPasswordResetEmail(auth, email);
   };
 
