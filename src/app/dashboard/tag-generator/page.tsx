@@ -1,3 +1,5 @@
+import { TagGenerator } from "@/components/tag-generator";
+
 export default function TagGeneratorPage() {
   return (
     <div>
@@ -7,9 +9,7 @@ export default function TagGeneratorPage() {
           Quickly generate a list of relevant, high-performing tags for your product listings.
         </p>
       </header>
-      <div className="border-2 border-dashed border-muted rounded-lg p-12 text-center">
-        <p className="text-muted-foreground">Coming soon...</p>
-      </div>
+      <TagGenerator />
     </div>
   );
 }
