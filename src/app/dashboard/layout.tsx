@@ -24,6 +24,7 @@ import {
   LogOut,
   User,
   ClipboardList,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -89,6 +90,14 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                 <SidebarMenuButton tooltip="Keyword Research">
                     <Search />
                     <span className="group-data-[collapsible=icon]:hidden">Keyword Research</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <Link href="/dashboard/listing-generator">
+                <SidebarMenuButton tooltip="AI Listing Generator">
+                    <Sparkles />
+                    <span className="group-data-[collapsible=icon]:hidden">AI Listing Generator</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
