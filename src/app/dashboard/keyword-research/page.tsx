@@ -1,3 +1,5 @@
+import { KeywordResearch } from "@/components/keyword-research";
+
 export default function KeywordResearchPage() {
   return (
     <div>
@@ -7,9 +9,7 @@ export default function KeywordResearchPage() {
           Discover and evaluate the potential of keywords to find profitable niches.
         </p>
       </header>
-      <div className="border-2 border-dashed border-muted rounded-lg p-12 text-center">
-        <p className="text-muted-foreground">Coming soon...</p>
-      </div>
+      <KeywordResearch />
     </div>
   );
 }

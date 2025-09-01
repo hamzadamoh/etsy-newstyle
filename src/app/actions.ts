@@ -11,6 +11,11 @@ const multiShopSchema = z.object({
   stores: z.string().min(1, "At least one store name is required."),
 });
 
+const keywordSchema = z.object({
+  keyword: z.string().min(1, "Keyword is required."),
+});
+
+
 export interface SingleShopActionState {
   shop: EtsyShop | null;
   listings: EtsyListing[];
@@ -127,4 +132,61 @@ export async function getCompetitorData(
   }
 
   return { shops, errors };
+}
+
+
+export interface KeywordResearchState {
+  listings: EtsyListing[];
+  count: number;
+  error: string | null;
+}
+
+export async function getKeywordData(
+    prevState: KeywordResearchState,
+    formData: FormData
+): Promise<KeywordResearchState> {
+    const validatedFields = keywordSchema.safeParse({
+        keyword: formData.get("keyword"),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            listings: [],
+            count: 0,
+            error: "Invalid keyword.",
+        };
+    }
+
+    const { keyword } = validatedFields.data;
+    const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
+    
+    try {
+        const listingsUrl = `https://api.etsy.com/v3/application/listings/active?keywords=${encodeURIComponent(keyword)}&limit=12&sort_on=score`;
+        const listingsRes = await fetch(listingsUrl, {
+            headers: { "x-api-key": apiKey },
+        });
+
+        if (!listingsRes.ok) {
+            return {
+                listings: [],
+                count: 0,
+                error: "Failed to fetch keyword data from Etsy.",
+            };
+        }
+
+        const listingsData = await listingsRes.json();
+        
+        return {
+            listings: listingsData.results,
+            count: listingsData.count,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Keyword research error:", error);
+        return {
+            listings: [],
+            count: 0,
+            error: "An unexpected error occurred.",
+        };
+    }
 }
