@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarProvider,
@@ -18,8 +20,6 @@ import {
   LogOut,
   User,
 } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -41,62 +41,62 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex flex-col justify-between h-full">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Shop Analyzer">
-                <Link href="/dashboard">
-                  <Store />
-                  <span>Shop Analyzer</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href="/dashboard">
+                <SidebarMenuButton tooltip="Shop Analyzer">
+                    <Store />
+                    <span>Shop Analyzer</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Keyword Research">
-                <Link href="/dashboard/keyword-research">
-                  <Search />
-                  <span>Keyword Research</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href="/dashboard/keyword-research">
+                <SidebarMenuButton tooltip="Keyword Research">
+                    <Search />
+                    <span>Keyword Research</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Tag Generator">
-                <Link href="/dashboard/tag-generator">
-                  <Tag />
-                  <span>Tag Generator</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href="/dashboard/tag-generator">
+                <SidebarMenuButton tooltip="Tag Generator">
+                    <Tag />
+                    <span>Tag Generator</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Competitor Tracker">
-                <Link href="/dashboard/competitor-tracker">
-                  <Users />
-                  <span>Competitor Tracker</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href="/dashboard/competitor-tracker">
+                <SidebarMenuButton tooltip="Competitor Tracker">
+                    <Users />
+                    <span>Competitor Tracker</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Niche Finder">
-                <Link href="/dashboard/niche-finder">
-                  <TrendingUp />
-                  <span>Niche Finder</span>
-                </Link>
-              </SidebarMenuButton>
+              <Link href="/dashboard/niche-finder">
+                <SidebarMenuButton tooltip="Niche Finder">
+                    <TrendingUp />
+                    <span>Niche Finder</span>
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
           <SidebarMenu>
              <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Profile">
                 <Link href="#">
-                  <User />
-                  <span>Your Profile</span>
+                    <SidebarMenuButton tooltip="Profile">
+                    <User />
+                    <span>Your Profile</span>
+                    </SidebarMenuButton>
                 </Link>
-              </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Logout">
                 <Link href="/">
-                  <LogOut />
-                  <span>Logout</span>
+                    <SidebarMenuButton tooltip="Logout">
+                    <LogOut />
+                    <span>Logout</span>
+                    </SidebarMenuButton>
                 </Link>
-              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </div>
