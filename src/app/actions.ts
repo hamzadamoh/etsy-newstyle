@@ -281,7 +281,7 @@ export async function trackShop(
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
-      userId: userId, 
+      userId: userId,
     });
     
     await batch.commit();
@@ -327,12 +327,18 @@ export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
 
 
 export async function getShopSnapshots(shopId: string): Promise<ShopSnapshot[]> {
-  const snapshotsRef = collection(db, "trackedShops", shopId, "snapshots");
-  const q = query(snapshotsRef, orderBy("date", "desc"), limit(7));
-  const querySnapshot = await getDocs(q);
+  if (!shopId) return [];
+  try {
+    const snapshotsRef = collection(db, "trackedShops", shopId, "snapshots");
+    const q = query(snapshotsRef, orderBy("date", "desc"), limit(7));
+    const querySnapshot = await getDocs(q);
 
-  const snapshots = querySnapshot.docs.map(doc => doc.data() as ShopSnapshot);
-  return snapshots.reverse();
+    const snapshots = querySnapshot.docs.map(doc => doc.data() as ShopSnapshot);
+    return snapshots.reverse();
+  } catch (error) {
+    console.error("Error getting shop snapshots: ", error);
+    return [];
+  }
 }
 
 export async function refreshShopData(trackedShopId: string, shop_id: number): Promise<ShopSnapshot | null> {
@@ -343,15 +349,18 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         if (!shopRes.ok) throw new Error('Failed to fetch from Etsy');
 
         const shop: EtsyShop = await shopRes.json();
+        const { uid: userId } = auth.currentUser || {};
+        if (!userId) throw new Error("User not authenticated.");
 
         const today = new Date().toISOString().split('T')[0];
         const snapshotRef = doc(db, "trackedShops", trackedShopId, "snapshots", today);
 
-        const newSnapshot: ShopSnapshot = {
+        const newSnapshot: ShopSnapshot & { userId?: string } = {
             date: today,
             transaction_sold_count: shop.transaction_sold_count,
             listing_active_count: shop.listing_active_count,
             num_favorers: shop.num_favorers,
+            userId,
         };
 
         await setDoc(snapshotRef, newSnapshot, { merge: true });
@@ -359,12 +368,16 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         const trackedShopRef = doc(db, "trackedShops", trackedShopId);
         await setDoc(trackedShopRef, { last_updated: serverTimestamp() }, { merge: true });
 
-        return newSnapshot;
+        // We don't want to return the userId to the client in this case
+        delete newSnapshot.userId;
+        return newSnapshot as ShopSnapshot;
 
     } catch (error) {
         console.error("Error refreshing shop data:", error);
         return null;
     }
 }
+
+    
 
     
