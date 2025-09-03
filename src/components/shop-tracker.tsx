@@ -92,7 +92,6 @@ export function ShopTracker() {
       <div className="lg:col-span-1 space-y-6">
         <Card>
           <form action={trackFormAction}>
-            <input type="hidden" name="userId" value={user?.uid || ''} />
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
