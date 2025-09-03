@@ -263,8 +263,11 @@ export async function trackShop(
         return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    // Step 1: Create the main document for the tracked shop.
-    await setDoc(trackedShopRef, {
+    // Use a batch write to create the shop and its first snapshot atomically.
+    const batch = writeBatch(db);
+
+    // Step 1: Set the main document for the tracked shop.
+    batch.set(trackedShopRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -273,15 +276,20 @@ export async function trackShop(
       last_updated: serverTimestamp(),
     });
 
-    // Step 2: Create the first snapshot in the subcollection.
+    // Step 2: Set the first snapshot in the subcollection.
     const today = new Date().toISOString().split('T')[0];
     const snapshotRef = doc(db, "trackedShops", docId, "snapshots", today);
-    await setDoc(snapshotRef, {
+    batch.set(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
+      // Add userId to snapshot for security rule validation
+      userId: userId, 
     });
+    
+    // Commit the batch.
+    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
@@ -363,3 +371,5 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
+
+    
