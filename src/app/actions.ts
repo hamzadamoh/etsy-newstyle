@@ -266,7 +266,6 @@ export async function trackShop(
       return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    // Step 1: Create the main shop document first.
     const newShopDoc = await addDoc(trackedShopsRef, {
       userId: userId,
       shop_id: shop.shop_id,
@@ -276,7 +275,6 @@ export async function trackShop(
       last_updated: serverTimestamp(),
     });
 
-    // Step 2: Now that the parent document exists, create the first snapshot.
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const snapshotRef = doc(db, "trackedShops", newShopDoc.id, "snapshots", today);
     await setDoc(snapshotRef, {
