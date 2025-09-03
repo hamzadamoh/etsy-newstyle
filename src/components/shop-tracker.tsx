@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { trackShop, getTrackedShops, getShopSnapshots, refreshShopData } from "@/app/actions";
 import type { TrackedShop, ShopSnapshot } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -28,37 +28,6 @@ export function ShopTracker() {
   const { toast } = useToast();
   const { user } = useAuthContext();
 
-  const fetchTrackedShops = async () => {
-    if (!user) return;
-    setIsLoadingShops(true);
-    const shops = await getTrackedShops(user.uid);
-    setTrackedShops(shops);
-    if (shops.length > 0 && !selectedShop) {
-      // Automatically select the first shop on initial load
-      handleSelectShop(shops[0]);
-    }
-    setIsLoadingShops(false);
-  };
-
-  useEffect(() => {
-    if (user) {
-        fetchTrackedShops();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (trackState.message) {
-      toast({
-        variant: trackState.success ? "default" : "destructive",
-        title: trackState.success ? "Success" : "Error",
-        description: trackState.message,
-      });
-      if (trackState.success) {
-        fetchTrackedShops();
-      }
-    }
-  }, [trackState, toast]);
-
   const handleSelectShop = async (shop: TrackedShop) => {
     setSelectedShop(shop);
     setIsLoadingSnapshots(true);
@@ -79,9 +48,44 @@ export function ShopTracker() {
     setIsLoadingSnapshots(false);
     if(isStale) {
       // Refetch the shop list to get the new `last_updated` timestamp
-      fetchTrackedShops();
+      if (user) {
+        getTrackedShops(user.uid).then(setTrackedShops);
+      }
     }
   };
+
+
+  useEffect(() => {
+    if (user) {
+      setIsLoadingShops(true);
+      getTrackedShops(user.uid).then(shops => {
+        setTrackedShops(shops);
+        if (shops.length > 0 && !selectedShop) {
+          handleSelectShop(shops[0]);
+        }
+        setIsLoadingShops(false);
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (trackState.message) {
+      toast({
+        variant: trackState.success ? "default" : "destructive",
+        title: trackState.success ? "Success" : "Error",
+        description: trackState.message,
+      });
+      if (trackState.success && user) {
+        setIsLoadingShops(true);
+        getTrackedShops(user.uid).then(shops => {
+          setTrackedShops(shops);
+          setIsLoadingShops(false);
+        });
+      }
+    }
+  }, [trackState, toast, user]);
+
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
