@@ -101,7 +101,6 @@ export function ShopTracker() {
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
               <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
-              {user && <input type="hidden" name="userId" value={user.uid} />}
             </CardContent>
             <CardFooter>
               <SubmitButton className="w-full" disabled={!user}>
