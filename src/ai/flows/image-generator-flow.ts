@@ -34,11 +34,12 @@ const generateImageFlow = ai.defineFlow(
   },
   async (input) => {
     const { media } = await ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
+        model: 'googleai/gemini-2.0-flash-preview-image-generation',
         prompt: input.prompt,
         config: {
             aspectRatio: input.aspectRatio,
             negativePrompt: input.negativePrompt,
+            responseModalities: ['IMAGE'],
         }
     });
     
