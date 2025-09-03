@@ -255,22 +255,19 @@ export async function trackShop(
     }
     const shop: EtsyShop = shopData.results[0];
 
-    const trackedShopsRef = collection(db, "trackedShops");
-    const q = query(
-      trackedShopsRef,
-      where("userId", "==", userId),
-      where("shop_id", "==", shop.shop_id)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      return { success: false, message: `You are already tracking "${shop.shop_name}".` };
+    // Create a deterministic doc ID to easily check for existence.
+    const docId = `${userId}_${shop.shop_id}`;
+    const trackedShopRef = doc(db, "trackedShops", docId);
+    
+    const docSnap = await getDoc(trackedShopRef);
+    if (docSnap.exists()) {
+        return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
     // Create the main document and the first snapshot in a single batch
     const batch = writeBatch(db);
 
-    const newShopDocRef = doc(collection(db, "trackedShops"));
-    batch.set(newShopDocRef, {
+    batch.set(trackedShopRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -280,7 +277,7 @@ export async function trackShop(
     });
 
     const today = new Date().toISOString().split('T')[0];
-    const snapshotRef = doc(db, "trackedShops", newShopDocRef.id, "snapshots", today);
+    const snapshotRef = doc(db, "trackedShops", docId, "snapshots", today);
     batch.set(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
@@ -371,3 +368,5 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
+
+    
