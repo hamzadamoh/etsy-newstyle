@@ -31,21 +31,29 @@ export function ShopTracker() {
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleFormActionWithToken = async (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
     if (user && clientAuth.currentUser) {
-        try {
-            const token = await clientAuth.currentUser.getIdToken();
-            formData.append("idToken", token);
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Authentication Error",
-                description: "Could not get authentication token. Please try again.",
-            });
-            return; 
-        }
+      try {
+        const token = await clientAuth.currentUser.getIdToken();
+        const formData = new FormData(formRef.current!);
+        formData.append("idToken", token);
+        trackFormAction(formData);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Could not get authentication token. Please try again.",
+        });
+      }
+    } else {
+        toast({
+          variant: "destructive",
+          title: "Not Logged In",
+          description: "You must be logged in to track a shop.",
+        });
     }
-    trackFormAction(formData);
   };
   
   const handleSelectShop = async (shop: TrackedShop) => {
@@ -104,7 +112,8 @@ export function ShopTracker() {
         });
       }
     }
-  }, [trackState, toast, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackState, toast]);
 
 
 
@@ -112,7 +121,7 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} action={handleFormActionWithToken}>
+          <form ref={formRef} onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
