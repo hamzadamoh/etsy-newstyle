@@ -12,6 +12,8 @@ import { z } from 'genkit';
 
 const GenerateImageInputSchema = z.object({
   prompt: z.string().describe('A text description of the image to generate.'),
+  aspectRatio: z.string().optional().describe('The aspect ratio of the generated image, e.g., "1:1", "9:16", "16:9".'),
+  negativePrompt: z.string().optional().describe('A description of what to avoid in the image.'),
 });
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 
@@ -34,6 +36,10 @@ const generateImageFlow = ai.defineFlow(
     const { media } = await ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: input.prompt,
+        config: {
+            aspectRatio: input.aspectRatio,
+            negativePrompt: input.negativePrompt,
+        }
     });
     
     const imageUrl = media.url;
