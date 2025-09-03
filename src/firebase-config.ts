@@ -12,19 +12,17 @@ let adminAuth: Auth | null = null;
 let db: Firestore | null = null;
 
 try {
-  if (getApps().length === 0) {
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-    if (serviceAccountString) {
-      const serviceAccount = JSON.parse(serviceAccountString);
-      app = initializeApp({
-        credential: cert(serviceAccount)
-      });
-    } else {
-      console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Server-side Firebase features will not work.");
-    }
-  } else {
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  
+  if (getApps().length === 0 && serviceAccountString) {
+    const serviceAccount = JSON.parse(serviceAccountString);
+    app = initializeApp({
+      credential: cert(serviceAccount)
+    });
+  } else if (getApps().length > 0) {
     app = getApp();
+  } else {
+    console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Server-side Firebase features will not work.");
   }
 
   if (app) {
