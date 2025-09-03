@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, Wand2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Download, Copy, Wand2, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 
 export function ImageGenerator() {
@@ -55,6 +56,27 @@ export function ImageGenerator() {
       document.body.removeChild(link);
        toast({
         title: "Image downloading!",
+      });
+    }
+  };
+  
+  const handleCopy = async () => {
+    if (!imageUrl) return;
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const clipboardItem = new ClipboardItem({ [blob.type]: blob });
+      await navigator.clipboard.write([clipboardItem]);
+      toast({
+        title: "Image copied!",
+        description: "The image has been copied to your clipboard.",
+      });
+    } catch (error) {
+      console.error("Failed to copy image:", error);
+      toast({
+        variant: "destructive",
+        title: "Copy Failed",
+        description: "Could not copy the image to the clipboard.",
       });
     }
   };
@@ -105,15 +127,21 @@ export function ImageGenerator() {
       {imageUrl && (
         <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-start">
                 <div>
                   <CardTitle>Your Generated Image</CardTitle>
-                  <CardDescription>You can now download your new image.</CardDescription>
+                  <CardDescription>You can now copy or download your new image.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleDownload}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDownload}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="flex justify-center">
