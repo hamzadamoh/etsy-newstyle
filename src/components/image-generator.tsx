@@ -7,16 +7,12 @@ import { generateImage } from "@/ai/flows/image-generator-flow";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Download, Wand2, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 export function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("");
-  const [aspectRatio, setAspectRatio] = useState("1:1");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -35,8 +31,6 @@ export function ImageGenerator() {
     try {
       const result = await generateImage({ 
         prompt,
-        negativePrompt,
-        aspectRatio,
        });
       setImageUrl(result.imageUrl);
     } catch (error) {
@@ -76,42 +70,17 @@ export function ImageGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="col-span-1 md:col-span-2 space-y-2">
-              <Label htmlFor="image-prompt">Image Prompt</Label>
-              <Textarea
-                id="image-prompt"
-                placeholder="e.g., 'A cinematic, professional product photograph of a handmade ceramic mug on a rustic wooden table, soft morning light.'"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={3}
-                disabled={isLoading}
-              />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="aspect-ratio">Aspect Ratio</Label>
-                <Select value={aspectRatio} onValueChange={setAspectRatio} disabled={isLoading}>
-                    <SelectTrigger id="aspect-ratio">
-                        <SelectValue placeholder="Select ratio..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="1:1">Square (1:1)</SelectItem>
-                        <SelectItem value="16:9">Landscape (16:9)</SelectItem>
-                        <SelectItem value="9:16">Portrait (9:16)</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="image-prompt">Image Prompt</Label>
+            <Textarea
+              id="image-prompt"
+              placeholder="e.g., 'A cinematic, professional product photograph of a handmade ceramic mug on a rustic wooden table, soft morning light.'"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={3}
+              disabled={isLoading}
+            />
           </div>
-           <div className="space-y-2">
-              <Label htmlFor="negative-prompt">Negative Prompt (Optional)</Label>
-              <Input
-                id="negative-prompt"
-                placeholder="e.g., 'text, watermark, blurry, extra fingers'"
-                value={negativePrompt}
-                onChange={(e) => setNegativePrompt(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button onClick={handleGenerateImage} disabled={isLoading}>
@@ -154,9 +123,6 @@ export function ImageGenerator() {
                     width={512}
                     height={512}
                     className="rounded-lg border object-contain"
-                    style={{
-                        aspectRatio: aspectRatio.replace(':', ' / ')
-                    }}
                     data-ai-hint="generated image"
                 />
             </CardContent>
