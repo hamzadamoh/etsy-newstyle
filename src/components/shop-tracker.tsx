@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
@@ -76,7 +77,10 @@ export function ShopTracker() {
     const snapshots = await getShopSnapshots(shop.id);
     setSnapshotData(snapshots);
     setIsLoadingSnapshots(false);
-    if(isStale) fetchTrackedShops();
+    if(isStale) {
+      // Refetch the shop list to get the new `last_updated` timestamp
+      fetchTrackedShops();
+    }
   };
 
   return (

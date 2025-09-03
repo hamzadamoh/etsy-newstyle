@@ -4,7 +4,7 @@
 import { z } from "zod";
 import type { EtsyShop, EtsyListing, TrackedShop, ShopSnapshot } from "@/lib/types";
 import { auth, db } from "@/firebase-config";
-import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp, writeBatch } from "firebase/firestore";
 
 
 const singleShopSchema = z.object({
@@ -265,8 +265,11 @@ export async function trackShop(
     if (!querySnapshot.empty) {
       return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
+    
+    const batch = writeBatch(db);
 
-    const docRef = await addDoc(trackedShopsRef, {
+    const newShopRef = doc(collection(db, "trackedShops"));
+    batch.set(newShopRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -276,13 +279,15 @@ export async function trackShop(
     });
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const snapshotRef = doc(db, "trackedShops", docRef.id, "snapshots", today);
-    await setDoc(snapshotRef, {
+    const snapshotRef = doc(db, "trackedShops", newShopRef.id, "snapshots", today);
+    batch.set(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
     });
+    
+    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
@@ -357,5 +362,3 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
-
-    
