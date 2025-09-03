@@ -266,10 +266,8 @@ export async function trackShop(
       return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    const batch = writeBatch(db);
-
-    const newShopRef = doc(collection(db, "trackedShops"));
-    batch.set(newShopRef, {
+    // Step 1: Create the main shop document first.
+    const newShopDoc = await addDoc(trackedShopsRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -278,16 +276,15 @@ export async function trackShop(
       last_updated: serverTimestamp(),
     });
 
+    // Step 2: Now that the parent document exists, create the first snapshot.
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const snapshotRef = doc(db, "trackedShops", newShopRef.id, "snapshots", today);
-    batch.set(snapshotRef, {
+    const snapshotRef = doc(db, "trackedShops", newShopDoc.id, "snapshots", today);
+    await setDoc(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
     });
-    
-    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
