@@ -31,13 +31,22 @@ export function ShopTracker() {
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
   
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    // Prevent the default form submission
+    event.preventDefault();
+    
+    // Get the form data
+    const formData = new FormData(event.currentTarget);
+    
+    // Get and append the ID token
     if (user && clientAuth.currentUser) {
         const token = await clientAuth.currentUser.getIdToken();
         if (token) {
             formData.append("idToken", token);
         }
     }
+    
+    // Manually call the server action
     trackFormAction(formData);
   };
 
@@ -106,7 +115,7 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} action={handleSubmit}>
+          <form ref={formRef} action={trackFormAction}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
