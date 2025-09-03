@@ -235,7 +235,6 @@ export async function trackShop(
   });
 
   if (!validatedFields.success) {
-    // Check if the error is due to missing userId to give a clear message
     if (validatedFields.error.issues.some(issue => issue.path.includes('userId'))) {
         return { success: false, message: "You must be logged in to track a shop." };
     }
