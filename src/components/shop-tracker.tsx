@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { trackShop, getTrackedShops, getShopSnapshots, refreshShopData } from "@/app/actions";
 import type { TrackedShop, ShopSnapshot } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +27,7 @@ export function ShopTracker() {
   const [isLoadingSnapshots, setIsLoadingSnapshots] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthContext();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSelectShop = async (shop: TrackedShop) => {
     setSelectedShop(shop);
@@ -76,6 +77,7 @@ export function ShopTracker() {
         description: trackState.message,
       });
       if (trackState.success && user) {
+        formRef.current?.reset();
         setIsLoadingShops(true);
         getTrackedShops(user.uid).then(shops => {
           setTrackedShops(shops);
@@ -91,7 +93,7 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form action={trackFormAction}>
+          <form ref={formRef} action={trackFormAction}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
@@ -99,9 +101,10 @@ export function ShopTracker() {
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
               <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
+              {user && <input type="hidden" name="userId" value={user.uid} />}
             </CardContent>
             <CardFooter>
-              <SubmitButton className="w-full">
+              <SubmitButton className="w-full" disabled={!user}>
                 <PlusCircle className="mr-2"/>
                 Track Shop
               </SubmitButton>

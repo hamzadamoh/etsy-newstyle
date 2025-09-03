@@ -217,6 +217,7 @@ export async function getKeywordData(
 // Shop Tracker Actions
 const trackShopSchema = z.object({
   store: z.string().min(1, "Store name is required."),
+  userId: z.string().min(1, "User ID is required."),
 });
 
 export interface TrackShopActionState {
@@ -228,22 +229,16 @@ export async function trackShop(
   prevState: TrackShopActionState,
   formData: FormData
 ): Promise<TrackShopActionState> {
-  // Get authenticated user ID securely on the server.
-  const user = auth.currentUser;
-  if (!user) {
-    return { success: false, message: "You must be logged in to track a shop." };
-  }
-  const userId = user.uid;
-
   const validatedFields = trackShopSchema.safeParse({
     store: formData.get("store"),
+    userId: formData.get("userId"),
   });
 
   if (!validatedFields.success) {
-    return { success: false, message: "Invalid store name." };
+    return { success: false, message: "Invalid form data. UserID and store name are required." };
   }
 
-  const { store } = validatedFields.data;
+  const { store, userId } = validatedFields.data;
   const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
 
   try {
@@ -379,5 +374,3 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
-
-    
