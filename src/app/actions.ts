@@ -289,9 +289,10 @@ export async function trackShop(
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error tracking shop:", error);
-    return { success: false, message: "An unexpected error occurred." };
+    // Return the actual error message for better debugging
+    return { success: false, message: error.message || "An unexpected error occurred." };
   }
 }
 
