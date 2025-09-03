@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, useRef } from "react";
+import { useActionState, useEffect, useState, useRef, useTransition } from "react";
 import { trackShop, getTrackedShops, getShopSnapshots, refreshShopData } from "@/app/actions";
 import type { TrackedShop, ShopSnapshot } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +21,7 @@ import { useAuthContext } from "@/context/auth-context";
 const initialTrackState = { success: false, message: "" };
 
 export function ShopTracker() {
-  const [trackState, trackFormAction, isTrackingPending] = useActionState(trackShop, initialTrackState);
+  const [trackState, formAction, isTrackingPending] = useActionState(trackShop, initialTrackState);
   const [trackedShops, setTrackedShops] = useState<TrackedShop[]>([]);
   const [selectedShop, setSelectedShop] = useState<TrackedShop | null>(null);
   const [snapshotData, setSnapshotData] = useState<ShopSnapshot[]>([]);
@@ -30,30 +30,24 @@ export function ShopTracker() {
   const { toast } = useToast();
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
-    if (user && clientAuth.currentUser) {
-      try {
-        const token = await clientAuth.currentUser.getIdToken();
-        const formData = new FormData(formRef.current!);
-        formData.append("idToken", token);
-        trackFormAction(formData);
-      } catch (error) {
+  const handleSubmit = (formData: FormData) => {
+    startTransition(async () => {
+      if (!user || !clientAuth.currentUser) {
         toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: "Could not get authentication token. Please try again.",
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "You must be logged in to track a shop.",
         });
+        return;
       }
-    } else {
-        toast({
-          variant: "destructive",
-          title: "Not Logged In",
-          description: "You must be logged in to track a shop.",
-        });
-    }
+      const token = await clientAuth.currentUser.getIdToken();
+      if (token) {
+        formData.append("idToken", token);
+      }
+      formAction(formData);
+    });
   };
   
   const handleSelectShop = async (shop: TrackedShop) => {
@@ -121,17 +115,17 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} onSubmit={handleSubmit}>
+          <form ref={formRef} action={handleSubmit}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
             </CardHeader>
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
-              <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
+              <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending || isPending} />
             </CardContent>
             <CardFooter>
-              <SubmitButton className="w-full" disabled={!user || isTrackingPending}>
+              <SubmitButton className="w-full" disabled={!user || isTrackingPending || isPending}>
                 <PlusCircle className="mr-2"/>
                 Track Shop
               </SubmitButton>
