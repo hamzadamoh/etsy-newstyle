@@ -1,20 +1,22 @@
 
-import { auth, db } from '@/firebase-config';
+import { auth, db } from '@/firebase-config-client'; // Use client config
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getFirestore } from 'firebase/firestore';
 
 export const useAuth = () => {
+  const firestore = getFirestore(auth.app); // Get firestore instance from the client app
+
   const signUp = async (email: string, password: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
     // Create a user profile in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
+    await setDoc(doc(firestore, 'users', user.uid), {
       email: user.email,
       role: 'user',
       createdAt: new Date(),
@@ -32,9 +34,6 @@ export const useAuth = () => {
   };
   
   const sendPasswordReset = (email: string) => {
-    // Rely directly on Firebase Authentication. It will not throw an error
-    // if the user does not exist, but will only send an email if they do.
-    // This is the standard and secure way to handle password resets.
     return sendPasswordResetEmail(auth, email);
   };
 
