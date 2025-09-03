@@ -30,25 +30,25 @@ export function ShopTracker() {
   const { toast } = useToast();
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isPending, startTransition] = useTransition();
+  const [idToken, setIdToken] = useState<string | null>(null);
 
-  const handleSubmit = (formData: FormData) => {
-    startTransition(async () => {
-      if (!user || !clientAuth.currentUser) {
-        toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: "You must be logged in to track a shop.",
-        });
-        return;
+  // Fetch ID token when user changes
+  useEffect(() => {
+    const fetchIdToken = async () => {
+      if (user && clientAuth.currentUser) {
+        try {
+          const token = await clientAuth.currentUser.getIdToken();
+          setIdToken(token);
+        } catch (error) {
+          console.error("Error fetching ID token:", error);
+          setIdToken(null);
+        }
+      } else {
+        setIdToken(null);
       }
-      const token = await clientAuth.currentUser.getIdToken();
-      if (token) {
-        formData.append("idToken", token);
-      }
-      formAction(formData);
-    });
-  };
+    };
+    fetchIdToken();
+  }, [user]);
   
   const handleSelectShop = async (shop: TrackedShop) => {
     setSelectedShop(shop);
@@ -115,17 +115,18 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} action={handleSubmit}>
+          <form ref={formRef} action={formAction}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
             </CardHeader>
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
-              <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending || isPending} />
+              <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
+              {idToken && <input type="hidden" name="idToken" value={idToken} />}
             </CardContent>
             <CardFooter>
-              <SubmitButton className="w-full" disabled={!user || isTrackingPending || isPending}>
+              <SubmitButton className="w-full" disabled={!user || !idToken || isTrackingPending}>
                 <PlusCircle className="mr-2"/>
                 Track Shop
               </SubmitButton>
