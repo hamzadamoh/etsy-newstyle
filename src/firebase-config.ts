@@ -1,3 +1,4 @@
+
 // This file is for SERVER-SIDE Firebase configuration.
 // It should use the Firebase Admin SDK.
 // DO NOT USE THIS ON THE CLIENT.
@@ -11,37 +12,27 @@ let adminAuth: Auth | null = null;
 let db: Firestore | null = null;
 
 try {
-    if (getApps().length === 0) {
-        const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  if (getApps().length === 0) {
+    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-        // Ensure all required environment variables are present
-        if (privateKey && clientEmail && projectId) {
-            const serviceAccount = {
-                projectId: projectId,
-                clientEmail: clientEmail,
-                privateKey: privateKey.replace(/\\n/g, '\n'),
-            };
-
-            app = initializeApp({
-                credential: cert(serviceAccount)
-            });
-        } else {
-            console.warn("Firebase Admin SDK credentials are not fully set in environment variables. Server-side Firebase features will not work.");
-        }
+    if (serviceAccountString) {
+      const serviceAccount = JSON.parse(serviceAccountString);
+      app = initializeApp({
+        credential: cert(serviceAccount)
+      });
     } else {
-        app = getApp();
+      console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Server-side Firebase features will not work.");
     }
+  } else {
+    app = getApp();
+  }
 
-    if (app) {
-        adminAuth = getAuth(app);
-        db = getFirestore(app);
-    }
-
+  if (app) {
+    adminAuth = getAuth(app);
+    db = getFirestore(app);
+  }
 } catch (error) {
     console.error("Firebase Admin SDK initialization error:", error);
 }
-
 
 export { app, adminAuth, db };
