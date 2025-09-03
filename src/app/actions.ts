@@ -49,7 +49,7 @@ export async function getEtsyShopData(
   try {
     const shopUrl = `https://api.etsy.com/v3/application/shops?shop_name=${store}`;
     const shopRes = await fetch(shopUrl, {
-      headers: { "x-api-key": apiKey },
+      headers: { "x--api-key": apiKey },
     });
 
     if (!shopRes.ok) {
@@ -266,7 +266,11 @@ export async function trackShop(
       return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    const newShopDoc = await addDoc(trackedShopsRef, {
+    const newShopDocRef = doc(collection(db, "trackedShops"));
+    
+    const batch = writeBatch(db);
+
+    batch.set(newShopDocRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -275,14 +279,16 @@ export async function trackShop(
       last_updated: serverTimestamp(),
     });
 
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const snapshotRef = doc(db, "trackedShops", newShopDoc.id, "snapshots", today);
-    await setDoc(snapshotRef, {
+    const today = new Date().toISOString().split('T')[0];
+    const snapshotRef = doc(db, "trackedShops", newShopDocRef.id, "snapshots", today);
+    batch.set(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
     });
+
+    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
