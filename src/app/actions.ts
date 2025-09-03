@@ -4,7 +4,7 @@
 import { z } from "zod";
 import type { EtsyShop, EtsyListing, TrackedShop, ShopSnapshot } from "@/lib/types";
 import { auth, db } from "@/firebase-config";
-import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp, updateDoc } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 
 
 const singleShopSchema = z.object({
@@ -266,31 +266,29 @@ export async function trackShop(
       return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    // Step 1: Create the main document first, without the server timestamp
+    // Create the main document and the first snapshot in a single batch
+    const batch = writeBatch(db);
+
     const newShopDocRef = doc(collection(db, "trackedShops"));
-    await setDoc(newShopDocRef, {
+    batch.set(newShopDocRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
       icon_url_fullxfull: shop.icon_url_fullxfull,
       url: shop.url,
-      // last_updated will be added in the next step
+      last_updated: serverTimestamp(),
     });
 
-    // Step 2: Update the new document with the server timestamp
-    await updateDoc(newShopDocRef, {
-        last_updated: serverTimestamp(),
-    });
-
-    // Step 3: Create the first snapshot in the subcollection
     const today = new Date().toISOString().split('T')[0];
     const snapshotRef = doc(db, "trackedShops", newShopDocRef.id, "snapshots", today);
-    await setDoc(snapshotRef, {
+    batch.set(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
     });
+    
+    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
