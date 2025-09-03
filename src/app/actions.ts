@@ -317,7 +317,7 @@ export async function trackShop(
 
 
 export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
-  if (!userId) return [];
+  if (!userId || !db) return [];
 
   try {
     const trackedShopsRef = collection(db, "trackedShops");
@@ -347,7 +347,7 @@ export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
 
 
 export async function getShopSnapshots(shopId: string): Promise<ShopSnapshot[]> {
-  if (!shopId) return [];
+  if (!shopId || !db) return [];
   try {
     const snapshotsRef = collection(db, "trackedShops", shopId, "snapshots");
     const q = query(snapshotsRef, orderBy("date", "desc"), limit(7));
@@ -363,6 +363,10 @@ export async function getShopSnapshots(shopId: string): Promise<ShopSnapshot[]> 
 
 export async function refreshShopData(trackedShopId: string, shop_id: number): Promise<ShopSnapshot | null> {
     const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
+    if (!db) {
+        console.error("Firestore not initialized for refreshShopData");
+        return null;
+    }
     try {
         const shopUrl = `https://api.etsy.com/v3/application/shops/${shop_id}`;
         const shopRes = await fetch(shopUrl, { headers: { "x-api-key": apiKey } });
