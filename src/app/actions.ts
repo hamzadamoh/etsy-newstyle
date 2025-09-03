@@ -230,6 +230,11 @@ export async function trackShop(
   formData: FormData
 ): Promise<TrackShopActionState> {
   console.log("Received Form Data:", Object.fromEntries(formData)); // Debug log
+  
+  if (!adminAuth) {
+    return { success: false, message: "Firebase Admin is not initialized. Check server environment variables." };
+  }
+
   const validatedFields = trackShopSchema.safeParse({
     store: formData.get("store"),
     idToken: formData.get("idToken"),
@@ -242,10 +247,6 @@ export async function trackShop(
   const { store, idToken } = validatedFields.data;
   const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
   
-  if (!adminAuth) {
-    return { success: false, message: "Firebase Admin is not initialized. Check server environment variables." };
-  }
-
   let userId = null;
   if (!idToken) {
     return { success: false, message: "No authentication token provided." };
