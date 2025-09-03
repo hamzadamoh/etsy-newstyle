@@ -30,21 +30,23 @@ export function ShopTracker() {
   const { toast } = useToast();
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
-  const [idToken, setIdToken] = useState('');
 
-  useEffect(() => {
-    const fetchIdToken = async () => {
-        if (user && clientAuth.currentUser) {
-            try {
-                const token = await clientAuth.currentUser.getIdToken();
-                setIdToken(token);
-            } catch (error) {
-                console.error("Error fetching ID token:", error);
-            }
+  const handleFormActionWithToken = async (formData: FormData) => {
+    if (user && clientAuth.currentUser) {
+        try {
+            const token = await clientAuth.currentUser.getIdToken();
+            formData.append("idToken", token);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Authentication Error",
+                description: "Could not get authentication token. Please try again.",
+            });
+            return; 
         }
-    };
-    fetchIdToken();
-  }, [user]);
+    }
+    trackFormAction(formData);
+  };
   
   const handleSelectShop = async (shop: TrackedShop) => {
     setSelectedShop(shop);
@@ -110,7 +112,7 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} action={trackFormAction}>
+          <form ref={formRef} action={handleFormActionWithToken}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
@@ -118,7 +120,6 @@ export function ShopTracker() {
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
               <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
-              {idToken && <input type="hidden" name="idToken" value={idToken} />}
             </CardContent>
             <CardFooter>
               <SubmitButton className="w-full" disabled={!user || isTrackingPending}>
