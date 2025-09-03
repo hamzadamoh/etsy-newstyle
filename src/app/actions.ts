@@ -4,7 +4,7 @@
 import { z } from "zod";
 import type { EtsyShop, EtsyListing, TrackedShop, ShopSnapshot } from "@/lib/types";
 import { auth, db } from "@/firebase-config";
-import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp, writeBatch } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp } from "firebase/firestore";
 
 
 const singleShopSchema = z.object({
@@ -267,7 +267,8 @@ export async function trackShop(
     }
     
     // Create the main document first
-    const newShopDocRef = await addDoc(trackedShopsRef, {
+    const newShopDocRef = doc(collection(db, "trackedShops"));
+    await setDoc(newShopDocRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -298,24 +299,32 @@ export async function trackShop(
 export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
   if (!userId) return [];
 
-  const trackedShopsRef = collection(db, "trackedShops");
-  const q = query(trackedShopsRef, where("userId", "==", userId));
-  const querySnapshot = await getDocs(q);
-  
-  const shops = querySnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      shop_id: data.shop_id,
-      shop_name: data.shop_name,
-      icon_url_fullxfull: data.icon_url_fullxfull,
-      url: data.url,
-      userId: data.userId,
-      last_updated: (data.last_updated as Timestamp)?.toMillis() || Date.now(),
-    }
-  });
-  
-  return shops;
+  try {
+    const trackedShopsRef = collection(db, "trackedShops");
+    const q = query(trackedShopsRef, where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    const shops = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        const lastUpdated = data.last_updated as Timestamp;
+        return {
+        id: doc.id,
+        shop_id: data.shop_id,
+        shop_name: data.shop_name,
+        icon_url_fullxfull: data.icon_url_fullxfull,
+        url: data.url,
+        userId: data.userId,
+        last_updated: lastUpdated?.toMillis() || Date.now(),
+        }
+    });
+    
+    return shops;
+  } catch (error) {
+      console.error("Error getting tracked shops: ", error);
+      // In case of a permissions error, it's better to return an empty array
+      // than to let the server component crash.
+      return [];
+  }
 }
 
 
@@ -359,5 +368,3 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
-
-    
