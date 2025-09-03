@@ -255,7 +255,6 @@ export async function trackShop(
     }
     const shop: EtsyShop = shopData.results[0];
 
-    // Create a deterministic doc ID to easily check for existence.
     const docId = `${userId}_${shop.shop_id}`;
     const trackedShopRef = doc(db, "trackedShops", docId);
     
@@ -264,10 +263,8 @@ export async function trackShop(
         return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
     
-    // Create the main document and the first snapshot in a single batch
-    const batch = writeBatch(db);
-
-    batch.set(trackedShopRef, {
+    // Step 1: Create the main document for the tracked shop.
+    await setDoc(trackedShopRef, {
       userId: userId,
       shop_id: shop.shop_id,
       shop_name: shop.shop_name,
@@ -276,22 +273,20 @@ export async function trackShop(
       last_updated: serverTimestamp(),
     });
 
+    // Step 2: Create the first snapshot in the subcollection.
     const today = new Date().toISOString().split('T')[0];
     const snapshotRef = doc(db, "trackedShops", docId, "snapshots", today);
-    batch.set(snapshotRef, {
+    await setDoc(snapshotRef, {
       date: today,
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
     });
-    
-    await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
 
   } catch (error: any) {
     console.error("Error tracking shop:", error);
-    // Return the actual error message for better debugging
     return { success: false, message: error.message || "An unexpected error occurred." };
   }
 }
@@ -322,8 +317,6 @@ export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
     return shops;
   } catch (error) {
       console.error("Error getting tracked shops: ", error);
-      // In case of a permissions error, it's better to return an empty array
-      // than to let the server component crash.
       return [];
   }
 }
@@ -369,5 +362,3 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
-
-    
