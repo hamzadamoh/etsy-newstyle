@@ -281,6 +281,7 @@ export async function trackShop(
       transaction_sold_count: shop.transaction_sold_count,
       listing_active_count: shop.listing_active_count,
       num_favorers: shop.num_favorers,
+      userId: userId, // Add userId to snapshot for security rule
     });
     
     await batch.commit();
@@ -359,6 +360,7 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
             transaction_sold_count: shop.transaction_sold_count,
             listing_active_count: shop.listing_active_count,
             num_favorers: shop.num_favorers,
+            userId: userId, // Add userId for security rule
         };
 
         await setDoc(snapshotRef, newSnapshot, { merge: true });
@@ -375,7 +377,5 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
-
-    
 
     
