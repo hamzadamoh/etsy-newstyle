@@ -30,23 +30,22 @@ export function ShopTracker() {
   const { toast } = useToast();
   const { user } = useAuthContext();
   const formRef = useRef<HTMLFormElement>(null);
-  
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    
-    if (user && clientAuth.currentUser) {
-        const token = await clientAuth.currentUser.getIdToken();
-        if (token) {
-            formData.append("idToken", token);
+  const [idToken, setIdToken] = useState('');
+
+  useEffect(() => {
+    const fetchIdToken = async () => {
+        if (user && clientAuth.currentUser) {
+            try {
+                const token = await clientAuth.currentUser.getIdToken();
+                setIdToken(token);
+            } catch (error) {
+                console.error("Error fetching ID token:", error);
+            }
         }
-    }
-    
-    trackFormAction(formData);
-  };
-
-
+    };
+    fetchIdToken();
+  }, [user]);
+  
   const handleSelectShop = async (shop: TrackedShop) => {
     setSelectedShop(shop);
     setIsLoadingSnapshots(true);
@@ -111,7 +110,7 @@ export function ShopTracker() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <div className="lg:col-span-1 space-y-6">
         <Card>
-          <form ref={formRef} onSubmit={handleSubmit}>
+          <form ref={formRef} action={trackFormAction}>
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
@@ -119,9 +118,10 @@ export function ShopTracker() {
             <CardContent>
               <Label htmlFor="store">Shop Name</Label>
               <Input id="store" name="store" placeholder="e.g., YourCompetitor" required disabled={isTrackingPending} />
+              {idToken && <input type="hidden" name="idToken" value={idToken} />}
             </CardContent>
             <CardFooter>
-              <SubmitButton className="w-full" disabled={!user}>
+              <SubmitButton className="w-full" disabled={!user || isTrackingPending}>
                 <PlusCircle className="mr-2"/>
                 Track Shop
               </SubmitButton>
