@@ -28,9 +28,14 @@ export function ShopTracker() {
   const { user } = useAuthContext();
 
   const fetchTrackedShops = async () => {
+    if (!user) return;
     setIsLoadingShops(true);
-    const shops = await getTrackedShops();
+    const shops = await getTrackedShops(user.uid);
     setTrackedShops(shops);
+    if (shops.length > 0 && !selectedShop) {
+      // Automatically select the first shop on initial load
+      handleSelectShop(shops[0]);
+    }
     setIsLoadingShops(false);
   };
 
@@ -79,6 +84,7 @@ export function ShopTracker() {
       <div className="lg:col-span-1 space-y-6">
         <Card>
           <form action={trackFormAction}>
+            <input type="hidden" name="userId" value={user?.uid || ''} />
             <CardHeader>
               <CardTitle>Track a New Shop</CardTitle>
               <CardDescription>Enter a shop name to start monitoring its daily stats.</CardDescription>
@@ -123,6 +129,7 @@ export function ShopTracker() {
                           height={32}
                           alt={`${shop.shop_name} icon`}
                           className="rounded-full"
+                          data-ai-hint="logo"
                         />
                       ) : (
                         <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">

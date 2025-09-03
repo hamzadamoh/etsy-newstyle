@@ -216,6 +216,7 @@ export async function getKeywordData(
 // Shop Tracker Actions
 const trackShopSchema = z.object({
   store: z.string().min(1, "Store name is required."),
+  userId: z.string().min(1, "User ID is required."),
 });
 
 export interface TrackShopActionState {
@@ -229,19 +230,18 @@ export async function trackShop(
 ): Promise<TrackShopActionState> {
   const validatedFields = trackShopSchema.safeParse({
     store: formData.get("store"),
+    userId: formData.get("userId"),
   });
 
   if (!validatedFields.success) {
+    // Check if the error is due to missing userId to give a clear message
+    if (validatedFields.error.issues.some(issue => issue.path.includes('userId'))) {
+        return { success: false, message: "You must be logged in to track a shop." };
+    }
     return { success: false, message: "Invalid store name." };
   }
-  
-  if (!auth.currentUser) {
-    return { success: false, message: "You must be logged in to track a shop." };
-  }
-  const userId = auth.currentUser.uid;
 
-
-  const { store } = validatedFields.data;
+  const { store, userId } = validatedFields.data;
   const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
 
   try {
@@ -293,10 +293,8 @@ export async function trackShop(
 }
 
 
-export async function getTrackedShops(): Promise<TrackedShop[]> {
-  if (!auth.currentUser) return [];
-  const userId = auth.currentUser.uid;
-
+export async function getTrackedShops(userId: string): Promise<TrackedShop[]> {
+  if (!userId) return [];
 
   const trackedShopsRef = collection(db, "trackedShops");
   const q = query(trackedShopsRef, where("userId", "==", userId));
