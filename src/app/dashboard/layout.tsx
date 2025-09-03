@@ -26,6 +26,7 @@ import {
   ClipboardList,
   Sparkles,
   Image as ImageIcon,
+  AreaChart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -115,6 +116,14 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                 <SidebarMenuButton tooltip="Bulk Shop Analyzer">
                     <ClipboardList />
                     <span className="group-data-[collapsible=icon]:hidden">Bulk Shop Analyzer</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/dashboard/shop-tracker">
+                <SidebarMenuButton tooltip="Shop Tracker">
+                    <AreaChart />
+                    <span className="group-data-[collapsible=icon]:hidden">Shop Tracker</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>

@@ -30,3 +30,20 @@ export interface Filters {
   age: number;
   views: number;
 }
+
+export interface TrackedShop {
+  id: string; // Firestore document ID
+  shop_id: number;
+  shop_name: string;
+  icon_url_fullxfull: string | null;
+  url: string;
+  userId: string;
+  last_updated: number; // timestamp
+}
+
+export interface ShopSnapshot {
+    date: string; // YYYY-MM-DD
+    transaction_sold_count: number;
+    listing_active_count: number;
+    num_favorers: number;
+}

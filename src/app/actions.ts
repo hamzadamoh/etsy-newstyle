@@ -1,7 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import type { EtsyShop, EtsyListing } from "@/lib/types";
+import type { EtsyShop, EtsyListing, TrackedShop, ShopSnapshot } from "@/lib/types";
+import { auth, db } from "@/firebase-config";
+import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, serverTimestamp, limit, orderBy, Timestamp } from "firebase/firestore";
+
 
 const singleShopSchema = z.object({
   store: z.string().min(1, "Store name is required."),
@@ -206,5 +209,153 @@ export async function getKeywordData(
     } catch (error) {
         console.error("Keyword research error:", error);
         return { ...prevState, error: "An unexpected error occurred." };
+    }
+}
+
+
+// Shop Tracker Actions
+const trackShopSchema = z.object({
+  store: z.string().min(1, "Store name is required."),
+});
+
+export interface TrackShopActionState {
+  success: boolean;
+  message: string;
+}
+
+export async function trackShop(
+  prevState: TrackShopActionState,
+  formData: FormData
+): Promise<TrackShopActionState> {
+  const validatedFields = trackShopSchema.safeParse({
+    store: formData.get("store"),
+  });
+
+  if (!validatedFields.success) {
+    return { success: false, message: "Invalid store name." };
+  }
+  
+  if (!auth.currentUser) {
+    return { success: false, message: "You must be logged in to track a shop." };
+  }
+  const userId = auth.currentUser.uid;
+
+
+  const { store } = validatedFields.data;
+  const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
+
+  try {
+    const shopUrl = `https://api.etsy.com/v3/application/shops?shop_name=${store}`;
+    const shopRes = await fetch(shopUrl, { headers: { "x-api-key": apiKey } });
+    if (!shopRes.ok) throw new Error("Failed to fetch from Etsy.");
+    
+    const shopData = await shopRes.json();
+    if (!shopData.results || shopData.results.length === 0) {
+      return { success: false, message: `Shop "${store}" not found on Etsy.` };
+    }
+    const shop: EtsyShop = shopData.results[0];
+
+    const trackedShopsRef = collection(db, "trackedShops");
+    const q = query(
+      trackedShopsRef,
+      where("userId", "==", userId),
+      where("shop_id", "==", shop.shop_id)
+    );
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      return { success: false, message: `You are already tracking "${shop.shop_name}".` };
+    }
+
+    const docRef = await addDoc(trackedShopsRef, {
+      userId: userId,
+      shop_id: shop.shop_id,
+      shop_name: shop.shop_name,
+      icon_url_fullxfull: shop.icon_url_fullxfull,
+      url: shop.url,
+      last_updated: serverTimestamp(),
+    });
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const snapshotRef = doc(db, "trackedShops", docRef.id, "snapshots", today);
+    await setDoc(snapshotRef, {
+      date: today,
+      transaction_sold_count: shop.transaction_sold_count,
+      listing_active_count: shop.listing_active_count,
+      num_favorers: shop.num_favorers,
+    });
+
+    return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
+
+  } catch (error) {
+    console.error("Error tracking shop:", error);
+    return { success: false, message: "An unexpected error occurred." };
+  }
+}
+
+
+export async function getTrackedShops(): Promise<TrackedShop[]> {
+  if (!auth.currentUser) return [];
+  const userId = auth.currentUser.uid;
+
+
+  const trackedShopsRef = collection(db, "trackedShops");
+  const q = query(trackedShopsRef, where("userId", "==", userId));
+  const querySnapshot = await getDocs(q);
+  
+  const shops = querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      shop_id: data.shop_id,
+      shop_name: data.shop_name,
+      icon_url_fullxfull: data.icon_url_fullxfull,
+      url: data.url,
+      userId: data.userId,
+      last_updated: (data.last_updated as Timestamp)?.toMillis() || Date.now(),
+    }
+  });
+  
+  return shops;
+}
+
+
+export async function getShopSnapshots(shopId: string): Promise<ShopSnapshot[]> {
+  const snapshotsRef = collection(db, "trackedShops", shopId, "snapshots");
+  const q = query(snapshotsRef, orderBy("date", "desc"), limit(7));
+  const querySnapshot = await getDocs(q);
+
+  const snapshots = querySnapshot.docs.map(doc => doc.data() as ShopSnapshot);
+  return snapshots.reverse();
+}
+
+export async function refreshShopData(trackedShopId: string, shop_id: number): Promise<ShopSnapshot | null> {
+    const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
+    try {
+        const shopUrl = `https://api.etsy.com/v3/application/shops/${shop_id}`;
+        const shopRes = await fetch(shopUrl, { headers: { "x-api-key": apiKey } });
+        if (!shopRes.ok) throw new Error('Failed to fetch from Etsy');
+
+        const shop: EtsyShop = await shopRes.json();
+
+        const today = new Date().toISOString().split('T')[0];
+        const snapshotRef = doc(db, "trackedShops", trackedShopId, "snapshots", today);
+
+        const newSnapshot: ShopSnapshot = {
+            date: today,
+            transaction_sold_count: shop.transaction_sold_count,
+            listing_active_count: shop.listing_active_count,
+            num_favorers: shop.num_favorers,
+        };
+
+        await setDoc(snapshotRef, newSnapshot, { merge: true });
+        
+        const trackedShopRef = doc(db, "trackedShops", trackedShopId);
+        await setDoc(trackedShopRef, { last_updated: serverTimestamp() }, { merge: true });
+
+        return newSnapshot;
+
+    } catch (error) {
+        console.error("Error refreshing shop data:", error);
+        return null;
     }
 }
