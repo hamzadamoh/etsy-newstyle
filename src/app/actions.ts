@@ -49,7 +49,7 @@ export async function getEtsyShopData(
   try {
     const shopUrl = `https://api.etsy.com/v3/application/shops?shop_name=${store}`;
     const shopRes = await fetch(shopUrl, {
-      headers: { "x--api-key": apiKey },
+      headers: { "x-api-key": apiKey },
     });
 
     if (!shopRes.ok) {
