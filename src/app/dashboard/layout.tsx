@@ -25,6 +25,7 @@ import {
   User,
   ClipboardList,
   Sparkles,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -90,6 +91,14 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                 <SidebarMenuButton tooltip="AI Listing Generator">
                     <Sparkles />
                     <span className="group-data-[collapsible=icon]:hidden">AI Listing Generator</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/dashboard/image-generator">
+                <SidebarMenuButton tooltip="AI Image Generator">
+                    <ImageIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">AI Image Generator</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
