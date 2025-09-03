@@ -287,7 +287,8 @@ export async function trackShop(
 
   } catch (error: any) {
     console.error("Error tracking shop:", error);
-    return { success: false, message: error.message || "An unexpected error occurred." };
+    const errorMessage = `Firebase Error: ${error.message} (Code: ${error.code || 'N/A'}, Name: ${error.name || 'N/A'})`;
+    return { success: false, message: errorMessage };
   }
 }
 
