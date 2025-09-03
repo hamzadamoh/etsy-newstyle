@@ -229,40 +229,46 @@ export async function trackShop(
   prevState: TrackShopActionState,
   formData: FormData
 ): Promise<TrackShopActionState> {
-
+  console.log("Received Form Data:", Object.fromEntries(formData)); // Debug log
   const validatedFields = trackShopSchema.safeParse({
     store: formData.get("store"),
     idToken: formData.get("idToken"),
   });
 
   if (!validatedFields.success) {
-    return { success: false, message: "Invalid form data. Store name is required." };
+    return { success: false, message: validatedFields.error.errors[0].message };
   }
 
   const { store, idToken } = validatedFields.data;
-
-  let userId: string | null = null;
-  if (idToken) {
-    try {
-      const decodedToken = await adminAuth.verifyIdToken(idToken);
-      userId = decodedToken.uid;
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      return { success: false, message: "Invalid authentication token." };
-    }
-  }
+  const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
   
+  if (!adminAuth) {
+    return { success: false, message: "Firebase Admin is not initialized. Check server environment variables." };
+  }
+
+  let userId = null;
+  if (!idToken) {
+    return { success: false, message: "No authentication token provided." };
+  }
+
+  try {
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    console.log("Decoded User ID:", decodedToken.uid); // Debug log
+    userId = decodedToken.uid;
+  } catch (error: any) {
+    console.error("Token verification error:", error);
+    return { success: false, message: `Authentication failed: ${error.message}` };
+  }
+
   if (!userId) {
     return { success: false, message: "You must be logged in to track a shop." };
   }
-
-  const apiKey = process.env.ETSY_API_KEY || "92h3z6gfdbg4142mv5ziak0k";
 
   try {
     const shopUrl = `https://api.etsy.com/v3/application/shops?shop_name=${store}`;
     const shopRes = await fetch(shopUrl, { headers: { "x-api-key": apiKey } });
     if (!shopRes.ok) throw new Error("Failed to fetch from Etsy.");
-    
+
     const shopData = await shopRes.json();
     if (!shopData.results || shopData.results.length === 0) {
       return { success: false, message: `Shop "${store}" not found on Etsy.` };
@@ -271,12 +277,12 @@ export async function trackShop(
 
     const docId = `${userId}_${shop.shop_id}`;
     const trackedShopRef = doc(db, "trackedShops", docId);
-    
+
     const docSnap = await getDoc(trackedShopRef);
     if (docSnap.exists()) {
-        return { success: false, message: `You are already tracking "${shop.shop_name}".` };
+      return { success: false, message: `You are already tracking "${shop.shop_name}".` };
     }
-    
+
     const batch = writeBatch(db);
 
     batch.set(trackedShopRef, {
@@ -297,11 +303,10 @@ export async function trackShop(
       num_favorers: shop.num_favorers,
       userId: userId,
     });
-    
+
     await batch.commit();
 
     return { success: true, message: `Successfully started tracking "${shop.shop_name}".` };
-
   } catch (error: any) {
     console.error("Error tracking shop:", error);
     const errorMessage = `Firebase Error: ${error.message} (Code: ${error.code || 'N/A'}, Name: ${error.name || 'N/A'})`;
@@ -363,11 +368,6 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         if (!shopRes.ok) throw new Error('Failed to fetch from Etsy');
 
         const shop: EtsyShop = await shopRes.json();
-        
-        // This is a server action, so we cannot rely on client-side auth context
-        // This function needs the userId to be passed in to be secure.
-        // For now, we'll assume the security rules on snapshots prevent unauthorized writes
-        // A better implementation would pass the token and verify it.
         
         const today = new Date().toISOString().split('T')[0];
         const snapshotRef = doc(db, "trackedShops", trackedShopId, "snapshots", today);

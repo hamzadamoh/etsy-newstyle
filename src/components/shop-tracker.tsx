@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useActionState, useEffect, useState, useRef, useTransition } from "react";
+import { useActionState, useEffect, useState, useRef } from "react";
 import { trackShop, getTrackedShops, getShopSnapshots, refreshShopData } from "@/app/actions";
 import type { TrackedShop, ShopSnapshot } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,7 @@ export function ShopTracker() {
       if (user && clientAuth.currentUser) {
         try {
           const token = await clientAuth.currentUser.getIdToken();
+          console.log("Fetched ID Token:", token); // Debug log
           setIdToken(token);
         } catch (error) {
           console.error("Error fetching ID token:", error);
@@ -92,6 +93,7 @@ export function ShopTracker() {
 
   useEffect(() => {
     if (trackState.message) {
+      console.log("Track State Updated:", trackState); // Debug log
       toast({
         variant: trackState.success ? "default" : "destructive",
         title: trackState.success ? "Success" : "Error",
@@ -106,8 +108,7 @@ export function ShopTracker() {
         });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackState, toast]);
+  }, [trackState, toast, user]);
 
 
 
