@@ -231,7 +231,7 @@ export async function trackShop(
 ): Promise<TrackShopActionState> {
   console.log("Received Form Data:", Object.fromEntries(formData)); // Debug log
   
-  if (!adminAuth) {
+  if (!adminAuth || !db) {
     return { success: false, message: "Firebase Admin is not initialized. Check server environment variables." };
   }
 
@@ -392,3 +392,5 @@ export async function refreshShopData(trackedShopId: string, shop_id: number): P
         return null;
     }
 }
+
+    

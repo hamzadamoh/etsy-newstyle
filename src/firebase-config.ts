@@ -19,6 +19,7 @@ try {
     app = initializeApp({
       credential: cert(serviceAccount)
     });
+    console.log("Firebase Admin SDK initialized successfully.");
   } else if (getApps().length > 0) {
     app = getApp();
   } else {
@@ -34,3 +35,5 @@ try {
 }
 
 export { app, adminAuth, db };
+
+    
