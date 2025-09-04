@@ -11,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-import { ArrowUpDown, Search, Heart, Columns, Download } from "lucide-react";
+import { ArrowUpDown, Search, Heart, Columns, Download, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { EtsyListing } from "@/lib/types";
@@ -35,6 +39,7 @@ type AugmentedEtsyListing = EtsyListing & {
 
 type SortKey = "title" | "monthly_sales" | "sales" | "revenue" | "lqs" | "price";
 type SortDirection = "asc" | "desc";
+type ItemTypeFilter = "all" | "physical" | "digital";
 
 // Function to generate a plausible sales trend
 const generateSalesTrend = () => {
@@ -76,7 +81,10 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
   const { toast } = useToast();
   
   const [augmentedListings, setAugmentedListings] = useState<AugmentedEtsyListing[]>([]);
-  const [filter, setFilter] = useState("");
+  const [titleFilter, setTitleFilter] = useState("");
+  const [itemTypeFilter, setItemTypeFilter] = useState<ItemTypeFilter>('all');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+
   const [visibleColumns, setVisibleColumns] = useState({
     monthly_sales: true,
     sales: true,
@@ -94,12 +102,25 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
   const filteredAndSortedListings = useMemo(() => {
     let result = [...augmentedListings];
 
-    if (filter) {
+    // Title filter
+    if (titleFilter) {
       result = result.filter(listing =>
-        listing.title.toLowerCase().includes(filter.toLowerCase())
+        listing.title.toLowerCase().includes(titleFilter.toLowerCase())
       );
     }
 
+    // Item Type filter
+    if (itemTypeFilter !== 'all') {
+        result = result.filter(listing => {
+            const isDigital = listing.listing_type === 'digital' || listing.listing_type === 'download';
+            return itemTypeFilter === 'digital' ? isDigital : !isDigital;
+        });
+    }
+
+    // Price range filter
+    result = result.filter(listing => listing.price >= priceRange[0] && listing.price <= priceRange[1]);
+
+    // Sorting
     return result.sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
@@ -112,7 +133,7 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
       }
       return 0;
     });
-  }, [augmentedListings, sortKey, sortDirection, filter]);
+  }, [augmentedListings, sortKey, sortDirection, titleFilter, itemTypeFilter, priceRange]);
 
 
   const handleSort = (key: SortKey) => {
@@ -183,10 +204,56 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                         <Input 
                             placeholder="Search listings..." 
                             className="pl-8 w-40 sm:w-64"
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
+                            value={titleFilter}
+                            onChange={(e) => setTitleFilter(e.target.value)}
                         />
                     </div>
+                     <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Filter
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent>
+                            <SheetHeader>
+                                <SheetTitle>Filters</SheetTitle>
+                            </SheetHeader>
+                            <div className="space-y-6 py-6">
+                                <div className="space-y-3">
+                                    <Label>Item Type</Label>
+                                    <RadioGroup value={itemTypeFilter} onValueChange={(value) => setItemTypeFilter(value as ItemTypeFilter)}>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="all" id="all" />
+                                            <Label htmlFor="all">All</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="physical" id="physical" />
+                                            <Label htmlFor="physical">Physical</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="digital" id="digital" />
+                                            <Label htmlFor="digital">Digital</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                <div className="space-y-3">
+                                     <Label>Price Range</Label>
+                                      <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>${priceRange[0]}</span>
+                                        <span>${priceRange[1] === 1000 ? '1000+' : priceRange[1]}</span>
+                                      </div>
+                                     <Slider
+                                        value={priceRange}
+                                        onValueChange={(value) => setPriceRange(value as [number, number])}
+                                        min={0}
+                                        max={1000}
+                                        step={10}
+                                     />
+                                </div>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
