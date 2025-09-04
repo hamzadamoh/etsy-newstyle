@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
-import { ArrowUpDown, Search, Heart, Columns, Filter, Download } from "lucide-react";
+import { ArrowUpDown, Search, Heart, Columns, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { EtsyListing } from "@/lib/types";
@@ -76,14 +76,31 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
   const { toast } = useToast();
   
   const [augmentedListings, setAugmentedListings] = useState<AugmentedEtsyListing[]>([]);
+  const [filter, setFilter] = useState("");
+  const [visibleColumns, setVisibleColumns] = useState({
+    monthly_sales: true,
+    sales: true,
+    sales_trend: true,
+    revenue: true,
+    lqs: true,
+    price: true,
+  });
 
   useEffect(() => {
     // Generate augmented data on the client side to avoid hydration mismatch
     setAugmentedListings(augmentListingsData(listings));
   }, [listings]);
   
-  const sortedListings = useMemo(() => {
-    return [...augmentedListings].sort((a, b) => {
+  const filteredAndSortedListings = useMemo(() => {
+    let result = [...augmentedListings];
+
+    if (filter) {
+      result = result.filter(listing =>
+        listing.title.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+
+    return result.sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
 
@@ -95,7 +112,7 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
       }
       return 0;
     });
-  }, [augmentedListings, sortKey, sortDirection]);
+  }, [augmentedListings, sortKey, sortDirection, filter]);
 
 
   const handleSort = (key: SortKey) => {
@@ -105,6 +122,29 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
       setSortKey(key);
       setSortDirection('desc');
     }
+  };
+
+  const handleExport = () => {
+    const headers = ["Title", "Monthly Sales", "Total Sales", "Revenue", "LQS", "Price", "URL"];
+    const rows = filteredAndSortedListings.map(l => [
+        `"${l.title.replace(/"/g, '""')}"`,
+        l.monthly_sales,
+        l.sales,
+        l.revenue,
+        l.lqs,
+        l.price,
+        l.url
+    ].join(','));
+    const csv = `${headers.join(',')}\n${rows.join('\n')}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'top-listings.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({ title: "Exporting CSV...", description: "Your download will start shortly."});
   };
   
   const SortableHeader = ({ sortKey: key, children, className }: { sortKey: SortKey; children: React.ReactNode; className?: string }) => (
@@ -137,6 +177,40 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                     <CardTitle>Top listings</CardTitle>
                     <Badge variant="secondary">{count.toLocaleString()} listings</Badge>
                 </div>
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search listings..." 
+                            className="pl-8 w-40 sm:w-64"
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                        />
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Columns className="mr-2 h-4 w-4" />
+                                Columns
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {Object.entries(visibleColumns).map(([key, value]) => (
+                                <DropdownMenuCheckboxItem
+                                    key={key}
+                                    checked={value}
+                                    onCheckedChange={(checked) => setVisibleColumns(prev => ({ ...prev, [key]: checked }))}
+                                >
+                                    {key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button variant="outline" size="sm" onClick={handleExport}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                    </Button>
+                </div>
             </div>
         </CardHeader>
       <CardContent>
@@ -148,26 +222,28 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                   <Checkbox />
                 </TableHead>
                 <SortableHeader sortKey="title" className="min-w-[300px]">Title</SortableHeader>
-                <SortableHeader sortKey="monthly_sales">Monthly sales</SortableHeader>
-                <SortableHeader sortKey="sales">Sales</SortableHeader>
-                <TableHead>Sales trend</TableHead>
-                <SortableHeader sortKey="revenue">Revenue</SortableHeader>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SortableHeader sortKey="lqs">LQS</SortableHeader>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Listing Quality Score</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <SortableHeader sortKey="price">Price</SortableHeader>
+                {visibleColumns.monthly_sales && <SortableHeader sortKey="monthly_sales">Monthly sales</SortableHeader>}
+                {visibleColumns.sales && <SortableHeader sortKey="sales">Sales</SortableHeader>}
+                {visibleColumns.sales_trend && <TableHead>Sales trend</TableHead>}
+                {visibleColumns.revenue && <SortableHeader sortKey="revenue">Revenue</SortableHeader>}
+                {visibleColumns.lqs && 
+                    <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                        <SortableHeader sortKey="lqs">LQS</SortableHeader>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                        <p>Listing Quality Score</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider>
+                }
+                {visibleColumns.price && <SortableHeader sortKey="price">Price</SortableHeader>}
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedListings.map((listing) => (
+              {filteredAndSortedListings.map((listing) => (
                   <TableRow key={listing.listing_id}>
                     <TableCell padding="checkbox">
                         <Checkbox />
@@ -178,22 +254,26 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                             <span className="truncate">{listing.title}</span>
                         </a>
                     </TableCell>
-                    <TableCell>{listing.monthly_sales.toLocaleString()}</TableCell>
-                    <TableCell>{listing.sales.toLocaleString()}</TableCell>
-                    <TableCell>
-                        <div className="w-24 h-8">
-                            <ResponsiveContainer>
-                                <LineChart data={listing.sales_trend}>
-                                    <Line type="monotone" dataKey="y" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </TableCell>
-                    <TableCell>${listing.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                    <TableCell>
-                        <Badge variant="outline" className="border-green-500 bg-green-500/10 text-green-700">{listing.lqs}</Badge>
-                    </TableCell>
-                    <TableCell>${listing.price.toFixed(2)}</TableCell>
+                    {visibleColumns.monthly_sales && <TableCell>{listing.monthly_sales.toLocaleString()}</TableCell>}
+                    {visibleColumns.sales && <TableCell>{listing.sales.toLocaleString()}</TableCell>}
+                    {visibleColumns.sales_trend && 
+                        <TableCell>
+                            <div className="w-24 h-8">
+                                <ResponsiveContainer>
+                                    <LineChart data={listing.sales_trend}>
+                                        <Line type="monotone" dataKey="y" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </TableCell>
+                    }
+                    {visibleColumns.revenue && <TableCell>${listing.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>}
+                    {visibleColumns.lqs && 
+                        <TableCell>
+                            <Badge variant="outline" className="border-green-500 bg-green-500/10 text-green-700">{listing.lqs}</Badge>
+                        </TableCell>
+                    }
+                    {visibleColumns.price && <TableCell>${listing.price.toFixed(2)}</TableCell>}
                     <TableCell>
                         <Button variant="ghost" size="icon">
                             <Heart className="h-4 w-4" />
@@ -208,3 +288,5 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
     </Card>
   );
 }
+
+    
