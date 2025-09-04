@@ -137,16 +137,6 @@ export function TopListingsTable({ listings, count }: TopListingsTableProps) {
                     <CardTitle>Top listings</CardTitle>
                     <Badge variant="secondary">{count.toLocaleString()} listings</Badge>
                 </div>
-                 <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search..." className="pl-9" />
-                    </div>
-                    <Button variant="outline"><ArrowUpDown className="mr-2 h-4 w-4" />Sort</Button>
-                    <Button variant="outline"><Filter className="mr-2 h-4 w-4" />Filter</Button>
-                    <Button variant="outline"><Columns className="mr-2 h-4 w-4" />Columns</Button>
-                    <Button variant="outline"><Download className="mr-2 h-4 w-4" />Export</Button>
-                </div>
             </div>
         </CardHeader>
       <CardContent>
